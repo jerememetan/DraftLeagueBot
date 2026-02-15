@@ -1,0 +1,44 @@
+Metagross @ Weakness Policy
+Ability: Clear Body
+Level: 50
+Tera Type: Steel
+EVs: 252 HP / 252 Atk / 4 SpD
+Adamant Nature
+- Meteor Mash
+- Zen Headbutt
+- Protect
+- Bullet Punch
+
+Grimmsnarl @ Salac Berry
+Ability: Prankster
+Level: 50
+Tera Type: Dark
+EVs: 252 HP / 4 Atk / 252 SpD
+Careful Nature
+- Fling
+- Fake Out
+- Spirit Break
+- Protect
+
+Mimikyu @ Life Orb
+Ability: Disguise
+Level: 50
+Tera Type: Ghost
+EVs: 4 HP / 252 Atk / 252 Spe
+Jolly Nature
+- Shadow Sneak
+- Play Rough
+- Protect
+- Swords Dance
+
+Amoonguss @ Rocky Helmet
+Ability: Regenerator
+Level: 50
+Tera Type: Water
+EVs: 252 HP / 156 Def / 100 SpD
+Relaxed Nature
+IVs: 0 Spe
+- Rage Powder
+- Spore
+- Pollen Puff
+- Protect

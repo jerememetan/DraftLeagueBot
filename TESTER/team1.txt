@@ -1,0 +1,44 @@
+Torkoal @ Heat Rock
+Ability: Drought
+Level: 50
+Tera Type: Fire
+EVs: 252 HP / 252 SpA / 4 SpD
+Quiet Nature
+IVs: 0 Spe
+- Eruption
+- Heat Wave
+- Protect
+- Yawn
+
+Lilligant @ Focus Sash
+Ability: Chlorophyll
+Level: 50
+Tera Type: Grass
+EVs: 4 HP / 252 SpA / 252 Spe
+Timid Nature
+- Sleep Powder
+- Leaf Storm
+- After You
+- Protect
+
+Gholdengo @ Leftovers
+Ability: Good as Gold
+Level: 50
+Tera Type: Steel
+EVs: 252 HP / 4 Def / 252 SpA
+Modest Nature
+- Make It Rain
+- Shadow Ball
+- Nasty Plot
+- Protect
+
+Great Tusk @ Assault Vest
+Ability: Protosynthesis
+Level: 50
+Tera Type: Ground
+EVs: 252 HP / 252 Atk / 4 SpD
+Adamant Nature
+- Headlong Rush
+- Close Combat
+- Rock Slide
+- Ice Spinner

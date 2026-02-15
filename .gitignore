@@ -1,0 +1,8 @@
+# Ignore team folders except TESTER
+ANDREW/
+JASPER/
+REUBEN/
+RUSS/
+VINCENT/
+XIN LIANG/
+!TESTER/

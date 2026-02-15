@@ -1,8 +1,11 @@
+import argparse
 import asyncio
-from poke_env import AccountConfiguration, LocalhostServerConfiguration
-from poke_env.player import MaxBasePowerPlayer
 import random
 from pathlib import Path
+
+from poke_env import AccountConfiguration, LocalhostServerConfiguration
+
+from bot_logic import DoublesMvpBot
 
 
 def load_random_team_from_challenger(challenger_name):
@@ -51,29 +54,16 @@ def list_available_challengers():
 
 
 
-class SmartAggroBot(MaxBasePowerPlayer):
-    """For this Smart Aggro Bot, just need to code to work in a doubles scenario, note that original MaxBasePowerPlayer can handle all 
-    states of double scenarios (Partner Died, Request to Switch when needed, etc)
-    
-    Current Flaws of the Bot: Only cares about highest base attacks, but does not account for type effectiveness.
-    Does not like to set-up as well
-    Does not go for pirority moves when defender is low on health
-    Fake Out support
-    
-    Documentation: https://poke-env.readthedocs.io/en/stable/
-    """
-    
-    def _should_mega_evolve(self, pokemon, battle): 
-        return False
-    
-    def _should_z_move(self, pokemon, battle): 
-        return False
-    
-    def _should_terastallize(self, pokemon, battle): 
-        return False
+class SmartAggroBot(DoublesMvpBot):
+    """Doubles MVP bot with custom scoring logic."""
 
 
 async def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--preflight", action="store_true", help="Run import/team checks only")
+    parser.add_argument("--debug", action="store_true", help="Enable per-turn debug output")
+    args = parser.parse_args()
+
     bot_account = AccountConfiguration("Bot_Opponent", None)
     
     available = list_available_challengers()
@@ -100,15 +90,24 @@ async def main():
                 break
         else:
             print(f"❌ '{selected_trainer}' not found. Please try again.")
+
+    if args.preflight:
+        print("✅ Preflight OK: team loaded and bot can be instantiated.")
+        return
     
     # Create bot
     bot = SmartAggroBot(
         account_configuration=bot_account,
         server_configuration=LocalhostServerConfiguration,
         team=selected_team,
-        battle_format="gen9vgc2025regj"
+        battle_format="gen94v4doublesdraft",
+        debug=args.debug,
+        debug_turns=2
     )
-    print("✅ Bot Ready. Debugging enabled.")
+    if args.debug:
+        print("✅ Bot Ready. Debugging enabled.")
+    else:
+        print("✅ Bot Ready.")
     await bot.accept_challenges(None, 5)
 
 

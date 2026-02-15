@@ -1,0 +1,84 @@
+Doubles MVP AI Logic (DraftLeagueBot)
+
+Scope
+- Doubles only (4v4). Singles-only switch logic is excluded.
+- Targeting policy: per-target scoring, pick the best target per move.
+- Randomness: keep original RNG weights (e.g., 80/20, 75/25).
+- Bug parity: fix documented bugs; use intended checks.
+
+Targeting and Scoring Model
+- For each move, score against each opposing active Pokemon.
+- Move score = base damage score + situational bonuses.
+- Choose the highest-scoring move/target pair. Ties break randomly.
+- Spread moves: score per target; still pick the best target for that move.
+
+Switching Policy (Doubles)
+- No voluntary switches in doubles.
+- Forced switch only for Perish Song end-of-counter cases.
+
+Damage Scoring (All Damaging Moves)
+- Roll a random damage value for each damaging move.
+- The highest damaging move gets +6 (80%) or +8 (20%).
+- If multiple moves kill, all are treated as highest damaging.
+- Kill bonuses:
+  - If AI is faster, or has priority while slower: +6
+  - If AI is slower: +3
+  - If AI has Moxie/Beast Boost/Chilling Neigh/Grim Neigh: +1
+- High-crit + super-effective: +1 (50%)
+- Excluded from "highest damage" roll: Explosion, Final Gambit, Relic Song,
+  Rollout, Meteor Beam, damaging trapping moves, Future Sight.
+  (These still get kill bonuses if they KO.)
+
+Priority Damaging Moves
+- If AI is slower and is KO'd by the target this turn: +11 to priority moves.
+
+Doubles-Specific Move Bonuses
+- Icy Wind / Electroweb: +1 additional in doubles.
+- Guaranteed Atk/SpA drops with spread (e.g., Trop Kick, Skitter Smack): +1
+  additional in doubles when spread.
+- Shadow Sneak / Aqua Jet / Ice Shard:
+  - If hitting partner with Weakness Policy and the hit is super-effective: +12
+- Fling:
+  - If Fling raises target speed and partner has Weakness Policy, and Fling is
+    super-effective: +12
+  - If Fling raises target speed without WP or not super-effective: +9
+- Magnitude / Earthquake partner check:
+  - Partner not grounded or using Magnet Rise and faster: +2
+  - Partner will be hit and is Fire/Poison/Electric/Rock: -10
+  - Partner will be hit and is not above types: -3
+- Tailwind:
+  - If any AI mon is slower than any opposing mon: +9
+  - Else: +5
+- Trick Room:
+  - If any AI mon is slower than any opposing mon: +10
+  - Else: +5
+  - If Trick Room already active: -20
+- Helping Hand / Follow Me:
+  - Base +6
+  - Do not use if partner is also using one of these moves or any status move.
+- Coaching (doubles only):
+  - Base +6
+  - If partner is not Contrary:
+    - Add (1 - partner Atk stage) if Atk < +2
+    - Add (1 - partner Def stage) if Def < +2
+    - +1 more ~80% of the time
+  - Never use in singles or if partner has Contrary.
+
+Status, Utility, and Setup (Doubles Context)
+- Use the same scoring as AI_LOGIC.txt, but apply per-target evaluation.
+- "Player mon" checks mean the specific target being evaluated.
+- Speed checks compare AI mon vs target; team-wide speed checks use the
+  fastest/slowest across active mons when specified.
+
+Recovery
+- Use the recovery decision logic from AI_LOGIC.txt as-is, but apply per-target
+  damage evaluation (use the most threatening opponent if needed).
+
+Known Fixes (Bug Parity = FIX)
+- Do not replicate the documented bugs. Implement the intended checks where
+  the doc says "bug in the code".
+
+Implementation Notes
+- Use per-target scoring first, then choose best target per move.
+- Add helper checks for: kill estimation, speed ordering, spread detection,
+  partner WP triggers, and partner-hit detection for EQ/Magnitude.

@@ -6,4 +6,10 @@ You need run a local version of pokemon showdown then run in your terminal
 
 In the config/config.js, change exports.noguestsecurity from false to true
 
-After that run test_bot
+After that run 
+
+
+
+# AI Battle Logic
+
+For this draft League Bot, it mimic's a Run and Bun
