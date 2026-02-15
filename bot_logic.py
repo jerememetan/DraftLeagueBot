@@ -156,7 +156,7 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 			return DoubleBattle.EMPTY_TARGET_POSITION
 
 		if move_target in {Target.NORMAL, Target.ANY, Target.ADJACENT_FOE}:
-			if self._is_partner(battle, attacker, target):
+			if self._is_partner(battle, attacker, target) and self._ally_target_allowed(move):
 				self_pos, ally_pos = self._ally_positions(battle, attacker)
 				return ally_pos if ally_pos is not None else self_pos
 			position = self._opponent_position(battle, target)
@@ -224,6 +224,9 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 		if self._is_poison_status_move(move):
 			return self._score_poison_move(battle, attacker, target)
 
+		if self._is_setup_move(move):
+			return self._score_setup_move(battle, attacker, target, move)
+
 		if move_id == "taunt":
 			return self._score_taunt(battle, attacker, target)
 
@@ -268,6 +271,203 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 				if self._has_poison_synergy(attacker) and not self._has_damaging_move(target):
 					score += 2
 		return score
+
+	def _score_setup_move(self, battle, attacker, target, move):
+		if self._threatened_by_ko(battle, attacker, target):
+			return -20
+		if self._target_has_unaware(target) and move.id not in {"poweruppunch", "swordsdance", "howl"}:
+			return -20
+
+		if self._is_special_setup(move):
+			return self._score_special_setup(attacker, target)
+		if self._is_defensive_setup(move):
+			boosts_both = move.id in {"cosmicpower", "stockpile"}
+			return self._score_defensive_setup(attacker, target, boosts_both=boosts_both)
+		if self._is_mixed_setup(move):
+			return self._score_mixed_setup(attacker, target, move)
+		if self._is_speed_setup(move):
+			return self._score_speed_setup(attacker, target)
+		if move.id in {"shellsmash"}:
+			return self._score_shell_smash(battle, attacker, target)
+		if move.id in {"bellydrum"}:
+			return self._score_belly_drum(battle, attacker, target)
+		return self._score_offensive_setup(attacker, target)
+
+	def _score_offensive_setup(self, attacker, target):
+		score = 6
+		if self._is_incapacitated(target):
+			score += 3
+		if not self._is_faster(attacker, target) and self._is_two_hko_threat(attacker, target):
+			score -= 5
+		return score
+
+	def _score_defensive_setup(self, attacker, target, boosts_both=False):
+		score = 6
+		if not self._is_faster(attacker, target) and self._is_two_hko_threat(attacker, target):
+			score -= 5
+		if random.random() < 0.95:
+			if self._is_incapacitated(target):
+				score += 2
+			if boosts_both and (self._get_boost(attacker, "def") < 2 or self._get_boost(attacker, "spd") < 2):
+				score += 2
+		return score
+
+	def _score_special_setup(self, attacker, target):
+		score = 6
+		if self._is_incapacitated(target):
+			score += 3
+		elif not self._is_three_hko_threat(attacker, target):
+			score += 1
+			if self._is_faster(attacker, target):
+				score += 1
+		if not self._is_faster(attacker, target) and self._is_two_hko_threat(attacker, target):
+			score -= 5
+		if self._get_boost(attacker, "spa") >= 2:
+			score -= 1
+		return score
+
+	def _score_speed_setup(self, attacker, target):
+		if not self._is_faster(attacker, target):
+			return 7
+		return -20
+
+	def _score_shell_smash(self, battle, attacker, target):
+		score = 6
+		if self._is_incapacitated(target):
+			score += 3
+		if not self._can_be_ko_after_setup(battle, attacker, target):
+			score += 2
+		else:
+			score -= 2
+		if self._get_boost(attacker, "atk") >= 1 or self._get_boost(attacker, "spa") >= 6:
+			return -20
+		return score
+
+	def _score_belly_drum(self, battle, attacker, target):
+		if self._is_incapacitated(target):
+			return 9
+		if not self._can_be_ko_after_setup(battle, attacker, target, hp_multiplier=0.5):
+			return 8
+		return 4
+
+	def _score_mixed_setup(self, attacker, target, move):
+		if move.id in {"coil", "bulkup", "noretreat"}:
+			if self._has_physical_move(target) and not self._has_special_move(target):
+				return self._score_defensive_setup(attacker, target)
+			return self._score_offensive_setup(attacker, target)
+		if move.id in {"calmmind", "quiverdance"}:
+			if self._has_special_move(target) and not self._has_physical_move(target):
+				return self._score_defensive_setup(attacker, target)
+			return self._score_offensive_setup(attacker, target)
+		return self._score_offensive_setup(attacker, target)
+
+	def _is_setup_move(self, move):
+		return move.id in {
+			"poweruppunch",
+			"swordsdance",
+			"howl",
+			"stuffcheeks",
+			"barrier",
+			"acidarmor",
+			"irondefense",
+			"cottonguard",
+			"harden",
+			"chargebeam",
+			"tailglow",
+			"nastyplot",
+			"cosmicpower",
+			"bulkup",
+			"calmmind",
+			"dragondance",
+			"coil",
+			"honeclaws",
+			"quiverdance",
+			"shiftgear",
+			"shellsmash",
+			"growth",
+			"workup",
+			"curse",
+			"noretreat",
+			"stockpile",
+			"agility",
+			"rockpolish",
+			"autotomize",
+			"bellydrum",
+			"focusenergy",
+			"laserfocus",
+		}
+
+	def _is_special_setup(self, move):
+		return move.id in {"tailglow", "nastyplot", "workup"}
+
+	def _is_defensive_setup(self, move):
+		return move.id in {"barrier", "acidarmor", "irondefense", "cottonguard", "harden", "stockpile", "cosmicpower"}
+
+	def _is_mixed_setup(self, move):
+		return move.id in {"coil", "bulkup", "noretreat", "calmmind", "quiverdance"}
+
+	def _is_speed_setup(self, move):
+		return move.id in {"agility", "rockpolish", "autotomize"}
+
+	def _threatened_by_ko(self, battle, attacker, target):
+		if target is None:
+			return False
+		return self._can_ko_target(battle, target, attacker)
+
+	def _is_two_hko_threat(self, attacker, target):
+		return self._estimate_max_damage_ratio(target, attacker) >= 0.5
+
+	def _is_three_hko_threat(self, attacker, target):
+		return self._estimate_max_damage_ratio(target, attacker) >= (1 / 3)
+
+	def _estimate_max_damage_ratio(self, attacker, target):
+		moves = getattr(attacker, "moves", {})
+		if not moves:
+			return 0
+		current_hp = self._get_target_current_hp(target)
+		if current_hp is None or current_hp == 0:
+			return 0
+		max_ratio = 0
+		for move in moves.values():
+			if not self._is_damaging(move):
+				continue
+			damage = self._estimate_damage(None, attacker, move, target, use_max_roll=True)
+			ratio = damage / current_hp
+			if ratio > max_ratio:
+				max_ratio = ratio
+		return max_ratio
+
+	def _can_be_ko_after_setup(self, battle, attacker, target, hp_multiplier=1.0):
+		if target is None:
+			return False
+		current_hp = self._get_target_current_hp(attacker)
+		if current_hp is None:
+			return False
+		current_hp *= hp_multiplier
+		moves = getattr(target, "moves", {})
+		for move in moves.values():
+			if not self._is_damaging(move):
+				continue
+			damage = self._estimate_damage(battle, target, move, attacker, use_max_roll=True)
+			if damage >= current_hp:
+				return True
+		return False
+
+	def _get_boost(self, pokemon, stat):
+		try:
+			return pokemon.boosts.get(stat, 0)
+		except Exception:
+			return 0
+
+	def _is_incapacitated(self, target):
+		if target is None:
+			return False
+		if getattr(target, "status", None) in {Status.SLP, Status.FRZ}:
+			return True
+		return bool(getattr(target, "must_recharge", False))
+
+	def _target_has_unaware(self, target):
+		return getattr(target, "ability", None) == "unaware"
 
 	def _is_sleep_status_move(self, move):
 		status = getattr(move, "status", None)
@@ -451,6 +651,14 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 				return True
 		return False
 
+	def _has_special_move(self, pokemon):
+		moves = getattr(pokemon, "moves", {})
+		for move in moves.values():
+			category = getattr(move, "category", None)
+			if category is not None and category.name.lower() == "special":
+				return True
+		return False
+
 	def _has_flinch_move(self, pokemon):
 		moves = getattr(pokemon, "moves", {})
 		flinch_moves = {
@@ -565,7 +773,7 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 		targets = []
 		if self._move_allows_foe(move_target):
 			targets.extend(list(opponents))
-		if self._move_allows_ally(move_target):
+		if self._move_allows_ally(move_target, move):
 			partner = self._get_partner(battle, attacker)
 			if partner is not None:
 				targets.append(partner)
@@ -574,8 +782,25 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 	def _move_allows_foe(self, move_target):
 		return move_target in {Target.NORMAL, Target.ADJACENT_FOE, Target.ANY, Target.ALL_ADJACENT_FOES}
 
-	def _move_allows_ally(self, move_target):
-		return move_target in {Target.NORMAL, Target.ADJACENT_ALLY, Target.ADJACENT_ALLY_OR_SELF, Target.ANY}
+	def _move_allows_ally(self, move_target, move):
+		if move_target in {Target.ADJACENT_ALLY, Target.ADJACENT_ALLY_OR_SELF, Target.SELF}:
+			return True
+		if move_target == Target.ANY:
+			return self._ally_target_allowed(move)
+		return False
+
+	def _ally_target_allowed(self, move):
+		move_id = getattr(move, "id", None)
+		return move_id in {
+			"shadowsneak",
+			"aquajet",
+			"iceshard",
+			"vacuumwave",
+			"bulletpunch",
+			"machpunch",
+			"watershuriken",
+			"fling",
+		}
 
 	def _is_partner(self, battle, attacker, target):
 		partner = self._get_partner(battle, attacker)

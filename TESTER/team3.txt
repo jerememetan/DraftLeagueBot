@@ -1,0 +1,44 @@
+Gyarados @ Lum Berry
+Ability: Intimidate
+Level: 50
+Tera Type: Water
+EVs: 4 HP / 252 Atk / 252 Spe
+Jolly Nature
+- Dragon Dance
+- Waterfall
+- Protect
+- Ice Fang
+
+Bronzong @ Leftovers
+Ability: Levitate
+Level: 50
+Tera Type: Steel
+EVs: 252 HP / 4 Def / 252 SpD
+Sassy Nature
+IVs: 0 Spe
+- Trick Room
+- Iron Defense
+- Body Press
+- Protect
+
+Indeedee-F @ Sitrus Berry
+Ability: Psychic Surge
+Level: 50
+Tera Type: Psychic
+EVs: 252 HP / 4 SpA / 252 SpD
+Calm Nature
+- Follow Me
+- Helping Hand
+- Psychic
+- Protect
+
+Volcarona @ Heavy-Duty Boots
+Ability: Flame Body
+Level: 50
+Tera Type: Fire
+EVs: 4 HP / 252 SpA / 252 Spe
+Timid Nature
+- Quiver Dance
+- Heat Wave
+- Bug Buzz
+- Protect

@@ -102,7 +102,7 @@ async def main():
         team=selected_team,
         battle_format="gen94v4doublesdraft",
         debug=args.debug,
-        debug_turns=2
+        debug_turns=55
     )
     if args.debug:
         print("✅ Bot Ready. Debugging enabled.")
