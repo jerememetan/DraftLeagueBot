@@ -155,6 +155,19 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 		if not isinstance(move_target, Target):
 			return DoubleBattle.EMPTY_TARGET_POSITION
 
+		if move_target in {
+			Target.SELF,
+			Target.ALLY_SIDE,
+			Target.ALLIES,
+			Target.FOE_SIDE,
+			Target.ALL,
+			Target.ALL_ADJACENT,
+			Target.ALL_ADJACENT_FOES,
+			Target.RANDOM_NORMAL,
+			Target.SCRIPTED,
+		}:
+			return DoubleBattle.EMPTY_TARGET_POSITION
+
 		if move_target in {Target.NORMAL, Target.ANY, Target.ADJACENT_FOE}:
 			if self._is_partner(battle, attacker, target) and self._ally_target_allowed(move):
 				self_pos, ally_pos = self._ally_positions(battle, attacker)
@@ -383,7 +396,10 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 		return bonus
 
 	def _is_setup_move(self, move):
-		return move.id in {
+		return move.id in self._setup_move_ids()
+
+	def _setup_move_ids(self):
+		return {
 			"poweruppunch",
 			"swordsdance",
 			"howl",
@@ -791,6 +807,8 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 		move_target = getattr(move, "deduced_target", None) or getattr(move, "target", None)
 		if not isinstance(move_target, Target):
 			return list(opponents)
+		if self._move_targets_self_or_side(move_target, move):
+			return [attacker]
 		targets = []
 		if self._move_allows_foe(move_target):
 			targets.extend(list(opponents))
@@ -822,6 +840,12 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 			"watershuriken",
 			"fling",
 		}
+
+	def _move_targets_self_or_side(self, move_target, move):
+		if move_target in {Target.SELF, Target.ALLY_SIDE, Target.ALLIES}:
+			return True
+		move_id = getattr(move, "id", None)
+		return move_id in self._setup_move_ids()
 
 	def _is_partner(self, battle, attacker, target):
 		partner = self._get_partner(battle, attacker)

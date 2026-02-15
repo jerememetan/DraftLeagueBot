@@ -21,24 +21,25 @@ IVs: 0 Spe
 - Body Press
 - Protect
 
-Indeedee-F @ Sitrus Berry
-Ability: Psychic Surge
-Level: 50
-Tera Type: Psychic
-EVs: 252 HP / 4 SpA / 252 SpD
-Calm Nature
-- Follow Me
-- Helping Hand
-- Psychic
-- Protect
-
-Volcarona @ Heavy-Duty Boots
-Ability: Flame Body
+Armarouge @ Weakness Policy
+Ability: Flash Fire
 Level: 50
 Tera Type: Fire
-EVs: 4 HP / 252 SpA / 252 Spe
-Timid Nature
-- Quiver Dance
-- Heat Wave
-- Bug Buzz
+EVs: 252 HP / 4 Def / 252 SpA
+Quiet Nature
+IVs: 0 Spe
+- Stored Power
+- Expanding Force
+- Calm Mind
+- Protect
+
+Corviknight @ Rocky Helmet
+Ability: Pressure
+Level: 50
+Tera Type: Steel
+EVs: 252 HP / 252 Def / 4 SpD
+Impish Nature
+- Iron Defense
+- Body Press
+- Roost
 - Protect
