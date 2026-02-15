@@ -278,20 +278,22 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 		if self._target_has_unaware(target) and move.id not in {"poweruppunch", "swordsdance", "howl"}:
 			return -20
 
+		synergy_bonus = self._setup_synergy_bonus(attacker, move)
+
 		if self._is_special_setup(move):
-			return self._score_special_setup(attacker, target)
+			return self._score_special_setup(attacker, target) + synergy_bonus
 		if self._is_defensive_setup(move):
 			boosts_both = move.id in {"cosmicpower", "stockpile"}
-			return self._score_defensive_setup(attacker, target, boosts_both=boosts_both)
+			return self._score_defensive_setup(attacker, target, boosts_both=boosts_both) + synergy_bonus
 		if self._is_mixed_setup(move):
-			return self._score_mixed_setup(attacker, target, move)
+			return self._score_mixed_setup(attacker, target, move) + synergy_bonus
 		if self._is_speed_setup(move):
-			return self._score_speed_setup(attacker, target)
+			return self._score_speed_setup(attacker, target) + synergy_bonus
 		if move.id in {"shellsmash"}:
-			return self._score_shell_smash(battle, attacker, target)
+			return self._score_shell_smash(battle, attacker, target) + synergy_bonus
 		if move.id in {"bellydrum"}:
-			return self._score_belly_drum(battle, attacker, target)
-		return self._score_offensive_setup(attacker, target)
+			return self._score_belly_drum(battle, attacker, target) + synergy_bonus
+		return self._score_offensive_setup(attacker, target) + synergy_bonus
 
 	def _score_offensive_setup(self, attacker, target):
 		score = 6
@@ -360,6 +362,25 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 				return self._score_defensive_setup(attacker, target)
 			return self._score_offensive_setup(attacker, target)
 		return self._score_offensive_setup(attacker, target)
+
+	def _setup_synergy_bonus(self, attacker, move):
+		if attacker is None:
+			return 0
+		moves = getattr(attacker, "moves", {})
+		if not moves:
+			return 0
+		power_trip = "powertrip" in moves
+		stored_power = "storedpower" in moves
+		body_press = "bodypress" in moves
+
+		bonus = 0
+		if power_trip:
+			bonus += 1
+		if stored_power:
+			bonus += 1
+		if body_press and self._is_defensive_setup(move):
+			bonus += 1
+		return bonus
 
 	def _is_setup_move(self, move):
 		return move.id in {
