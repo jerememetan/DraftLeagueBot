@@ -109,3 +109,17 @@ Remaining / Not Yet Implemented
 - Imprison, Baton Pass, Coaching (full), Tailwind/Trick Room refinements.
 - Contrary setup-attack rules (Overheat/Leaf Storm/Superpower).
 - Switch logic (Perish Song forced switch only).
+
+Recent Additions (since last update)
+- Aurora Veil snow/hail gate and higher base score; screens blocked if already active.
+- Recovery weather detection for sun (Morning Sun/Synthesis/Moonlight) and rain for Electro Shot.
+- Added charge-move rules (Electro Shot, Freeze Shock, Ice Burn, Geomancy, etc.) with Power Herb.
+- Extra +1 bonus for Electro Shot and Meteor Beam when they boost stats and do not KO.
+- Added Bulldoze to speed-control damage moves and EQ-style partner check.
+- Added additional debuff moves (Breaking Swipe, Chilling Water, Snarl, Spirit Break).
+
+Remaining / Not Yet Implemented
+- Explosion/Memento/Final Gambit/Destiny Bond logic.
+- Contrary setup-attack rules (Overheat/Leaf Storm/Superpower).
+- Coaching, Baton Pass, Imprison, Tailwind/Trick Room refinements.
+- Switch logic (Perish Song forced switch only).

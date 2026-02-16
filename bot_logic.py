@@ -147,12 +147,83 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 			if self._is_spdef_drop_damage_move(move):
 				score += 6
 
+			score += self._score_move_specific_damage(battle, attacker, move, target)
+
 			score += self._apply_doubles_damage_bonuses(battle, attacker, move, target)
 
 		else:
 			score += self._score_status_move(battle, attacker, move, target, opponents)
 
 		return score
+
+	def _score_move_specific_damage(self, battle, attacker, move, target):
+		move_id = getattr(move, "id", None)
+		if move_id is None:
+			return 0
+
+		if move_id == "futuresight":
+			if self._is_faster(attacker, target) and self._is_threatened_by(battle, target, attacker):
+				return 8
+			return 6
+
+		if move_id == "relicsong":
+			species = getattr(attacker, "species", "").lower()
+			if "meloetta" in species and "pirouette" not in species:
+				return 10
+			if "pirouette" in species:
+				return -20
+			return 0
+
+		if move_id == "suckerpunch":
+			last_move = getattr(attacker, "last_move", None)
+			last_id = getattr(last_move, "id", None)
+			if last_id == "suckerpunch" and random.random() < 0.5:
+				return -20
+			return 0
+
+		if move_id == "pursuit":
+			bonus = 0
+			if self._is_faster(attacker, target):
+				bonus += 3
+			if self._estimated_kill(target, self._estimate_damage(battle, attacker, move, target)):
+				return bonus + 10
+			hp_frac = getattr(target, "current_hp_fraction", 1)
+			if hp_frac < 0.2:
+				bonus += 10
+			elif hp_frac < 0.4 and random.random() < 0.5:
+				bonus += 8
+			return bonus
+
+		if move_id in {
+			"meteorbeam",
+			"freezeshock",
+			"iceburn",
+			"skullbash",
+			"skyattack",
+			"razorwind",
+			"geomancy",
+		}:
+			base = 9 if getattr(attacker, "item", None) == "powerherb" else -20
+			if base > 0 and move_id in {"meteorbeam", "electroshot"}:
+				if not self._estimated_kill(target, self._estimate_damage(battle, attacker, move, target)):
+					base += 1
+			return base
+
+		if move_id == "electroshot":
+			if self._is_rain_active(battle):
+				base = 9
+			else:
+				base = 9 if getattr(attacker, "item", None) == "powerherb" else -20
+			if base > 0 and not self._estimated_kill(target, self._estimate_damage(battle, attacker, move, target)):
+				base += 1
+			return base
+
+		if move_id in {"solarbeam", "solarblade"}:
+			if self._is_sun_active(battle):
+				return 9
+			return 9 if getattr(attacker, "item", None) == "powerherb" else -20
+
+		return 0
 
 	def _move_target_position(self, battle, attacker, move, target):
 		move_target = getattr(move, "deduced_target", None) or getattr(move, "target", None)
@@ -423,6 +494,10 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 	def _is_sun_active(self, battle):
 		weather = getattr(battle, "weather", {})
 		return Weather.SUNNYDAY in weather or Weather.DESOLATELAND in weather
+
+	def _is_rain_active(self, battle):
+		weather = getattr(battle, "weather", {})
+		return Weather.RAINDANCE in weather or Weather.PRIMORDIALSEA in weather
 
 	def _should_recover(self, battle, attacker, weather_boost=False, rest=False):
 		hp_frac = getattr(attacker, "current_hp_fraction", 0)
