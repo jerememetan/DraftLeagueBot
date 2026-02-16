@@ -338,16 +338,10 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 			return 0
 
 		if move_id in {"tailwind"}:
-			if self._team_is_slower(battle):
-				return 9
-			return 5
+			return self._score_tailwind(battle)
 
 		if move_id in {"trickroom"}:
-			if getattr(battle, "trick_room", False):
-				return -20
-			if self._team_is_slower(battle):
-				return 10
-			return 5
+			return self._score_trick_room(battle)
 
 		if move_id in {"helpinghand", "followme"}:
 			if self._partner_using_support_or_status(battle, attacker):
@@ -1203,7 +1197,17 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 		}
 
 	def _move_targets_self_or_side(self, move_target, move):
-		if move_target in {Target.SELF, Target.ALLY_SIDE, Target.ALLIES}:
+		if move_target in {
+			Target.SELF,
+			Target.ALLY_SIDE,
+			Target.ALLIES,
+			Target.FOE_SIDE,
+			Target.ALL,
+			Target.ALL_ADJACENT,
+			Target.ALL_ADJACENT_FOES,
+			Target.RANDOM_NORMAL,
+			Target.SCRIPTED,
+		}:
 			return True
 		move_id = getattr(move, "id", None)
 		return move_id in self._setup_move_ids()
@@ -1309,10 +1313,113 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 		fastest_foe = max(foe_speeds)
 		return fastest_ally < fastest_foe
 
+	def _speed_profile(self, battle):
+		allies = [p for p in battle.active_pokemon if p is not None]
+		opponents = [p for p in battle.opponent_active_pokemon if p is not None]
+		if not allies or not opponents:
+			return None
+		ally_speeds_raw = [self._safe_speed(p) for p in allies]
+		foe_speeds_raw = [self._safe_speed(p) for p in opponents]
+		ally_speeds = [s for s in ally_speeds_raw if s > 0]
+		foe_speeds = [s for s in foe_speeds_raw if s > 0]
+		if self._should_debug(battle):
+			turn = getattr(battle, "turn", "?")
+			ally_names = [getattr(p, "name", "?") for p in allies]
+			foe_names = [getattr(p, "name", "?") for p in opponents]
+			print(
+				"[AI DEBUG] "
+				f"turn={turn} speed_raw allies={list(zip(ally_names, ally_speeds_raw))} "
+				f"foes={list(zip(foe_names, foe_speeds_raw))}"
+			)
+			print(
+				"[AI DEBUG] "
+				f"turn={turn} speed_filtered allies={ally_speeds} foes={foe_speeds}"
+			)
+		if not ally_speeds or not foe_speeds:
+			return None
+		return min(ally_speeds), max(ally_speeds), min(foe_speeds), max(foe_speeds)
+
+	def _ally_side_condition_active(self, battle, condition):
+		try:
+			return condition in getattr(battle, "side_conditions", {})
+		except Exception:
+			return False
+
+	def _score_tailwind(self, battle):
+		if self._ally_side_condition_active(battle, SideCondition.TAILWIND):
+			return -20
+		if self._is_trick_room_active(battle):
+			return -8
+		score = 6
+		profile = self._speed_profile(battle)
+		if self._should_debug(battle):
+			turn = getattr(battle, "turn", "?")
+			print(f"[AI DEBUG] turn={turn} move=tailwind speed_profile={profile}")
+		if profile is None:
+			return score
+		min_ally, max_ally, min_foe, max_foe = profile
+		if max_ally < max_foe:
+			score += 3
+		if max_ally < min_foe:
+			score += 2
+		if max_ally > max_foe:
+			score -= 2
+		return score
+
+	def _score_trick_room(self, battle):
+		if self._is_trick_room_active(battle):
+			return -20
+		score = 6
+		if self._ally_side_condition_active(battle, SideCondition.TAILWIND):
+			score -= 4
+		if self._side_condition_active(battle, SideCondition.TAILWIND):
+			score += 3
+		profile = self._speed_profile(battle)
+		if self._should_debug(battle):
+			turn = getattr(battle, "turn", "?")
+			print(f"[AI DEBUG] turn={turn} move=trickroom speed_profile={profile}")
+		if profile is None:
+			return score
+		min_ally, max_ally, min_foe, max_foe = profile
+		if max_ally < max_foe:
+			score += 4
+		if max_ally < min_foe:
+			score += 2
+		if max_ally > max_foe:
+			score -= 5
+		return score
+
+	def _is_trick_room_active(self, battle):
+		if getattr(battle, "trick_room", False):
+			return True
+		fields = getattr(battle, "fields", None)
+		if fields is None:
+			fields = getattr(battle, "field", None)
+		if fields is None:
+			return False
+		if isinstance(fields, dict):
+			iterable = fields.keys()
+		elif isinstance(fields, (list, set, tuple)):
+			iterable = fields
+		else:
+			iterable = [fields]
+		for entry in iterable:
+			name = str(entry).lower()
+			if "trickroom" in name or "trick_room" in name:
+				return True
+		return False
+
 	def _safe_speed(self, pokemon):
 		try:
 			speed = pokemon.stats.get("spe", 0)
-			return 0 if speed is None else speed
+			if speed is None or speed == 0:
+				base_stats = getattr(pokemon, "base_stats", None)
+				if isinstance(base_stats, dict):
+					base_speed = base_stats.get("spe", 0)
+					if base_speed is None or base_speed == 0:
+						return 0
+					return int(round(base_speed * 1.4))
+			return speed
 		except Exception:
 			return 0
 
