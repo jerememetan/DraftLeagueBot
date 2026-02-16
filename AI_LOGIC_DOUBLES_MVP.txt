@@ -98,16 +98,20 @@ Implemented
 - Setup synergy bonuses (Stored Power/Power Trip/Body Press).
 - Weakness Policy partner triggers + Fling speed-boost logic.
 - Earthquake/Magnitude partner checks (immune, Magnet Rise, Levitate/Air Balloon).
+- Recovery moves (Recover/Roost/etc.), Rest, and weather-based recovery.
+- Hazards and screens (Stealth Rock/Spikes/Web/Light Screen/Reflect/Aurora Veil).
+- Damaging debuff moves (Atk/SpA drops, SpDef drops like Acid Spray).
+- Meteor Beam/Relic Song/Future Sight/Pursuit/Sucker Punch specifics.
+- Charge move rules (Electro Shot, Freeze Shock, Ice Burn, Geomancy, etc.).
+- Contrary setup-attack rules (Overheat/Leaf Storm/Superpower and extended list).
+- Tailwind/Trick Room refinements (speed profiling and active TR check).
+- Fake Out first-turn scoring and priority bias.
+- Avoid damaging moves into immune targets (general immunity check).
 - Debug logging for decisions and final orders (toggle with --debug).
 
 Remaining / Not Yet Implemented
-- Recovery moves (Recover/Roost/etc.), Rest, and weather-based recovery.
-- Hazards and screens (Stealth Rock/Spikes/Web/Light Screen/Reflect/Aurora Veil).
 - Explosion/Memento/Final Gambit/Destiny Bond logic.
-- Damaging debuff moves (Atk/SpA/SpDef drops beyond speed-control).
-- Meteor Beam/Relic Song/Future Sight/Pursuit/Sucker Punch specifics.
-- Imprison, Baton Pass, Coaching (full), Tailwind/Trick Room refinements.
-- Contrary setup-attack rules (Overheat/Leaf Storm/Superpower).
+- Coaching, Baton Pass, Imprison.
 - Switch logic (Perish Song forced switch only).
 
 Recent Additions (since last update)
@@ -117,9 +121,12 @@ Recent Additions (since last update)
 - Extra +1 bonus for Electro Shot and Meteor Beam when they boost stats and do not KO.
 - Added Bulldoze to speed-control damage moves and EQ-style partner check.
 - Added additional debuff moves (Breaking Swipe, Chilling Water, Snarl, Spirit Break).
+- Added Contrary setup-attack rules (expanded list) with setup bonus.
+- Refined Tailwind/Trick Room scoring and active Trick Room check.
+- Added Fake Out first-turn prioritization.
+- Avoid attacking into immunity (general check).
 
 Remaining / Not Yet Implemented
 - Explosion/Memento/Final Gambit/Destiny Bond logic.
-- Contrary setup-attack rules (Overheat/Leaf Storm/Superpower).
-- Coaching, Baton Pass, Imprison, Tailwind/Trick Room refinements.
+- Coaching, Baton Pass, Imprison.
 - Switch logic (Perish Song forced switch only).

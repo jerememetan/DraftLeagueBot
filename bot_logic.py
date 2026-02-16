@@ -114,6 +114,8 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 		score = 0.0
 
 		if self._is_damaging(move):
+			if self._is_immune_to_move(battle, move, target):
+				return -20
 			damage = self._estimate_damage(battle, attacker, move, target)
 			highest_damage = self._is_highest_damage_move(
 				battle, attacker, move, target, opponents, attacker_moves, damage
@@ -232,6 +234,14 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 			if last_id == "suckerpunch" and random.random() < 0.5:
 				return -20
 			return 0
+
+		if move_id == "fakeout":
+			if not getattr(attacker, "first_turn", False):
+				return -20
+			bonus = 8
+			if self._is_faster(target, attacker):
+				bonus += 2
+			return bonus
 
 		if move_id == "pursuit":
 			bonus = 0
@@ -1247,6 +1257,20 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 			if getattr(pokemon, "item", None) == "airballoon":
 				return True
 			return pokemon.damage_multiplier(PokemonType.GROUND) == 0
+		except Exception:
+			return False
+
+	def _is_immune_to_move(self, battle, move, target):
+		if target is None:
+			return False
+		try:
+			if hasattr(battle, "damage_multiplier"):
+				multiplier = battle.damage_multiplier(move, target)
+				return multiplier == 0
+		except Exception:
+			pass
+		try:
+			return target.damage_multiplier(move) == 0
 		except Exception:
 			return False
 
