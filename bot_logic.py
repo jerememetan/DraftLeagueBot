@@ -141,6 +141,12 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 			if self._is_speed_control_damage_move(move):
 				score += self._score_speed_control_damage(battle, attacker, move, target, highest_damage)
 
+			if self._is_offense_drop_damage_move(move):
+				score += self._score_offense_drop_damage(battle, attacker, move, target, highest_damage)
+
+			if self._is_spdef_drop_damage_move(move):
+				score += 6
+
 			score += self._apply_doubles_damage_bonuses(battle, attacker, move, target)
 
 		else:
@@ -243,6 +249,12 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 		if self._is_recovery_move(move):
 			return self._score_recovery_move(battle, attacker, move)
 
+		if self._is_hazard_move(move):
+			return self._score_hazard_move(battle, attacker, move)
+
+		if self._is_screen_move(move):
+			return self._score_screen_move(battle, attacker, move)
+
 		if move_id == "taunt":
 			return self._score_taunt(battle, attacker, target)
 
@@ -315,6 +327,81 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 
 		recover_decision = self._should_recover(battle, attacker, weather_boost=False)
 		return 7 if recover_decision else 5
+
+	def _is_hazard_move(self, move):
+		return move.id in {"stealthrock", "spikes", "toxicspikes", "stickyweb"}
+
+	def _score_hazard_move(self, battle, attacker, move):
+		first_turn = getattr(attacker, "first_turn", False)
+		if move.id == "stealthrock":
+			return self._hazard_score(first_turn, base_low=8, base_high=9)
+		if move.id in {"spikes", "toxicspikes"}:
+			score = self._hazard_score(first_turn, base_low=8, base_high=9)
+			if self._side_condition_active(battle, SideCondition.SPIKES if move.id == "spikes" else SideCondition.TOXIC_SPIKES):
+				score -= 1
+			return score
+		if move.id == "stickyweb":
+			return self._hazard_score(first_turn, base_low=9, base_high=12)
+		return 0
+
+	def _hazard_score(self, first_turn, base_low, base_high):
+		if first_turn:
+			return base_high if random.random() < 0.75 else base_low
+		return base_high if random.random() < 0.75 else base_low - 2
+
+	def _is_screen_move(self, move):
+		return move.id in {"lightscreen", "reflect", "auroraveil"}
+
+	def _score_screen_move(self, battle, attacker, move):
+		if move.id == "auroraveil" and not self._is_snow_active(battle):
+			return -20
+		if self._screen_already_active(battle, move.id):
+			return -20
+		score = 6
+		if move.id == "auroraveil":
+			score += 4
+		if self._opponent_has_matching_attack(move, battle):
+			if getattr(attacker, "item", None) == "lightclay":
+				score += 1
+			if random.random() < 0.5:
+				score += 1
+		return score
+
+	def _screen_already_active(self, battle, move_id):
+		active = getattr(battle, "side_conditions", {})
+		if SideCondition.AURORA_VEIL in active:
+			return move_id in {"auroraveil", "reflect", "lightscreen"}
+		if move_id == "reflect" and SideCondition.REFLECT in active:
+			return True
+		if move_id == "lightscreen" and SideCondition.LIGHT_SCREEN in active:
+			return True
+		return False
+
+	def _opponent_has_matching_attack(self, move, battle):
+		if move.id not in {"lightscreen", "reflect"}:
+			return False
+		opponents = [p for p in battle.opponent_active_pokemon if p is not None]
+		for opponent in opponents:
+			moves = getattr(opponent, "moves", {})
+			for op_move in moves.values():
+				category = getattr(op_move, "category", None)
+				if category is None:
+					continue
+				if move.id == "reflect" and category.name.lower() == "physical":
+					return True
+				if move.id == "lightscreen" and category.name.lower() == "special":
+					return True
+		return False
+
+	def _side_condition_active(self, battle, condition):
+		try:
+			return condition in getattr(battle, "opponent_side_conditions", {})
+		except Exception:
+			return False
+
+	def _is_snow_active(self, battle):
+		weather = getattr(battle, "weather", {})
+		return Weather.SNOWSCAPE in weather or Weather.HAIL in weather
 
 	def _is_recovery_move(self, move):
 		return move.id in {
@@ -854,14 +941,56 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 		if move_id == "fling":
 			bonus += self._fling_speed_bonus(battle, attacker, move, target)
 
-		if move_id in {"earthquake", "magnitude"}:
+		if move_id in {"earthquake", "magnitude", "bulldoze"}:
 			bonus += self._earthquake_partner_bonus(battle)
 
 		return bonus
 
+	def _is_offense_drop_damage_move(self, move):
+		move_id = getattr(move, "id", None)
+		return move_id in {
+			"tropkick",
+			"skittersmack",
+			"lunge",
+			"mysticalfire",
+			"strugglebug",
+			"breakingswipe",
+			"chillingwater",
+			"snarl",
+			"spiritbreak",
+		}
+
+	def _score_offense_drop_damage(self, battle, attacker, move, target, highest_damage):
+		if highest_damage:
+			return 0
+		if target is None:
+			return 5
+		if self._is_immune_to_speed_drop(target):
+			return 5
+		if self._target_has_corresponding_attack(move, target):
+			base = 6
+		else:
+			base = 5
+		if self._is_spread_move(move):
+			base += 1
+		return base
+
+	def _is_spdef_drop_damage_move(self, move):
+		return getattr(move, "id", None) == "acidspray"
+
+	def _target_has_corresponding_attack(self, move, target):
+		if target is None:
+			return False
+		move_id = getattr(move, "id", None)
+		if move_id in {"tropkick", "lunge", "breakingswipe", "chillingwater"}:
+			return self._has_physical_move(target)
+		if move_id in {"skittersmack", "mysticalfire", "strugglebug", "snarl", "spiritbreak"}:
+			return self._has_special_move(target)
+		return False
+
 	def _is_speed_control_damage_move(self, move):
 		move_id = getattr(move, "id", None)
-		return move_id in {"icywind", "electroweb", "rocktomb", "mudshot", "lowsweep"}
+		return move_id in {"icywind", "electroweb", "rocktomb", "mudshot", "lowsweep", "bulldoze"}
 
 	def _score_speed_control_damage(self, battle, attacker, move, target, highest_damage):
 		if highest_damage:

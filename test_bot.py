@@ -8,8 +8,8 @@ from poke_env import AccountConfiguration, LocalhostServerConfiguration
 from bot_logic import DoublesMvpBot
 
 
-def load_random_team_from_challenger(challenger_name):
-    """Load a random team from a challenger's folder."""
+def load_random_team_from_challenger(challenger_name, team_file=None):
+    """Load a random team from a challenger's folder or a specific team file."""
     script_dir = Path(__file__).parent
     challenger_folder = script_dir / challenger_name
     
@@ -17,7 +17,13 @@ def load_random_team_from_challenger(challenger_name):
         print(f"❌ Challenger folder '{challenger_name}' does not exist!")
         return None
     
-    team_files = list(challenger_folder.glob("*.txt"))
+    if team_file:
+        candidate = Path(team_file)
+        if not candidate.is_file():
+            candidate = challenger_folder / team_file
+        team_files = [candidate] if candidate.is_file() else []
+    else:
+        team_files = list(challenger_folder.glob("*.txt"))
     
     if not team_files:
         print(f"❌ No .txt team files found in '{challenger_name}' folder")
@@ -39,8 +45,12 @@ def load_random_team_from_challenger(challenger_name):
         print(f"❌ No valid teams found in '{challenger_name}' folder")
         return None
     
-    selected_file, selected_team = random.choice(valid_teams)
-    print(f"  ✅ Selected team: {selected_file} from {challenger_name}")
+    if team_file:
+        selected_file, selected_team = valid_teams[0]
+        print(f"  ✅ Selected team: {selected_file} from {challenger_name}")
+    else:
+        selected_file, selected_team = random.choice(valid_teams)
+        print(f"  ✅ Selected team: {selected_file} from {challenger_name}")
     
     return selected_team
 
@@ -62,6 +72,7 @@ async def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--preflight", action="store_true", help="Run import/team checks only")
     parser.add_argument("--debug", action="store_true", help="Enable per-turn debug output")
+    parser.add_argument("--team-file", help="Use a specific team file (name or full path)")
     args = parser.parse_args()
 
     bot_account = AccountConfiguration("Bot_Opponent", None)
@@ -85,7 +96,8 @@ async def main():
             return
         
         if selected_trainer in available:
-            selected_team = load_random_team_from_challenger(selected_trainer)
+            team_file = args.team_file if args.debug else None
+            selected_team = load_random_team_from_challenger(selected_trainer, team_file=team_file)
             if selected_team:
                 break
         else:
