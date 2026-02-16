@@ -149,12 +149,64 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 
 			score += self._score_move_specific_damage(battle, attacker, move, target)
 
+			if self._is_contrary_setup_attack(attacker, move, highest_damage, damage, target):
+				score += self._score_contrary_setup(attacker, target, move)
+
 			score += self._apply_doubles_damage_bonuses(battle, attacker, move, target)
 
 		else:
 			score += self._score_status_move(battle, attacker, move, target, opponents)
 
 		return score
+
+	def _is_contrary_setup_attack(self, attacker, move, highest_damage, damage, target):
+		if getattr(attacker, "ability", None) != "contrary":
+			return False
+		if move.id not in {
+			"clanging_scales",
+			"closecombat",
+			"dracometeor",
+			"dragonascent",
+			"fleurcannon",
+			"hammerarm",
+			"hyperspacefury",
+			"icehammer",
+			"leafstorm",
+			"overheat",
+			"psycho_boost",
+			"superpower",
+			"vcreate",
+		}:
+			return False
+		if highest_damage:
+			return False
+		if self._estimated_kill(target, damage):
+			return False
+		return True
+
+	def _score_contrary_setup(self, attacker, target, move):
+		base_bonus = 2
+		special_moves = {
+			"clanging_scales",
+			"dracometeor",
+			"fleurcannon",
+			"leafstorm",
+			"overheat",
+			"psycho_boost",
+		}
+		if move.id in special_moves:
+			return base_bonus + self._score_special_setup(attacker, target)
+		if move.id in {
+			"closecombat",
+			"dragonascent",
+			"hammerarm",
+			"hyperspacefury",
+			"icehammer",
+			"superpower",
+			"vcreate",
+		}:
+			return base_bonus + self._score_offensive_setup(attacker, target)
+		return base_bonus
 
 	def _score_move_specific_damage(self, battle, attacker, move, target):
 		move_id = getattr(move, "id", None)

@@ -1,0 +1,43 @@
+Serperior @ Leftovers
+Ability: Contrary
+Level: 50
+Tera Type: Dragon
+EVs: 4 HP / 252 SpA / 252 Spe
+Timid Nature
+- Leaf Storm
+- Dragon Pulse
+- Protect
+- Taunt
+
+Malamar @ Assault Vest
+Ability: Contrary
+Level: 50
+Tera Type: Dark
+EVs: 252 HP / 252 Atk / 4 SpD
+Adamant Nature
+- Superpower
+- Knock Off
+- Rock Slide
+- Throat Chop
+
+Incineroar @ Sitrus Berry
+Ability: Intimidate
+Level: 50
+Tera Type: Grass
+EVs: 252 HP / 4 Atk / 252 SpD
+Careful Nature
+- Fake Out
+- Parting Shot
+- Flare Blitz
+- Protect
+
+Flutter Mane @ Choice Specs
+Ability: Protosynthesis
+Level: 50
+Tera Type: Fairy
+EVs: 4 HP / 252 SpA / 252 Spe
+Timid Nature
+- Shadow Ball
+- Moonblast
+- Dazzling Gleam
+- Mystical Fire
