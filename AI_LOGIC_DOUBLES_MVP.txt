@@ -82,3 +82,30 @@ Implementation Notes
 - Use per-target scoring first, then choose best target per move.
 - Add helper checks for: kill estimation, speed ordering, spread detection,
   partner WP triggers, and partner-hit detection for EQ/Magnitude.
+
+Progress Update (Feb 16, 2026)
+
+Implemented
+- Doubles-only targeting and order construction, with correct target positions.
+- Damage model for KO checks (STAB, type effectiveness, damage rolls).
+- Priority move threat bonus (when threatened by faster opponent).
+- Protect / King's Shield scoring (status/effects, consecutive use).
+- Helping Hand / Follow Me gating (avoid partner status/support overlap).
+- Speed-control damage moves (Icy Wind/Electroweb/Rock Tomb/Mud Shot/Low Sweep).
+- Status moves: paralysis, Will-O-Wisp, Taunt, Encore.
+- Sleep moves scoring (Spore boosted); poison moves scoring.
+- Setup move scoring: offensive/defensive/mixed, special/speed, Shell Smash/Belly Drum.
+- Setup synergy bonuses (Stored Power/Power Trip/Body Press).
+- Weakness Policy partner triggers + Fling speed-boost logic.
+- Earthquake/Magnitude partner checks (immune, Magnet Rise, Levitate/Air Balloon).
+- Debug logging for decisions and final orders (toggle with --debug).
+
+Remaining / Not Yet Implemented
+- Recovery moves (Recover/Roost/etc.), Rest, and weather-based recovery.
+- Hazards and screens (Stealth Rock/Spikes/Web/Light Screen/Reflect/Aurora Veil).
+- Explosion/Memento/Final Gambit/Destiny Bond logic.
+- Damaging debuff moves (Atk/SpA/SpDef drops beyond speed-control).
+- Meteor Beam/Relic Song/Future Sight/Pursuit/Sucker Punch specifics.
+- Imprison, Baton Pass, Coaching (full), Tailwind/Trick Room refinements.
+- Contrary setup-attack rules (Overheat/Leaf Storm/Superpower).
+- Switch logic (Perish Song forced switch only).

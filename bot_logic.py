@@ -6,6 +6,7 @@ from poke_env.battle.double_battle import DoubleBattle
 from poke_env.battle.effect import Effect
 from poke_env.battle.status import Status
 from poke_env.battle.side_condition import SideCondition
+from poke_env.battle.weather import Weather
 from poke_env.battle.pokemon_type import PokemonType
 from poke_env.battle.target import Target
 from poke_env.player.battle_order import DoubleBattleOrder, PassBattleOrder
@@ -134,9 +135,8 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 			if self._is_high_crit(move) and self._is_super_effective(battle, move, target):
 				score += self._rng_weight(1, 0, 0.5)
 
-			if move.priority > 0 and self._is_threatened_by(battle, target, attacker):
-				if not self._is_faster(attacker, target):
-					score += 11
+			if move.priority > 0 and self._is_threatened_by_any_faster_opponent(battle, attacker):
+				score += 11
 
 			if self._is_speed_control_damage_move(move):
 				score += self._score_speed_control_damage(battle, attacker, move, target, highest_damage)
@@ -240,6 +240,9 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 		if self._is_setup_move(move):
 			return self._score_setup_move(battle, attacker, target, move)
 
+		if self._is_recovery_move(move):
+			return self._score_recovery_move(battle, attacker, move)
+
 		if move_id == "taunt":
 			return self._score_taunt(battle, attacker, target)
 
@@ -284,6 +287,108 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 				if self._has_poison_synergy(attacker) and not self._has_damaging_move(target):
 					score += 2
 		return score
+
+	def _score_recovery_move(self, battle, attacker, move):
+		if attacker is None:
+			return 0
+		hp_frac = getattr(attacker, "current_hp_fraction", 0)
+		if hp_frac >= 1.0:
+			return -20
+		if hp_frac >= 0.85:
+			return -6
+
+		if self._is_weather_recovery_move(move):
+			sun_active = self._is_sun_active(battle)
+			recover_decision = self._should_recover(battle, attacker, weather_boost=sun_active)
+			if sun_active and recover_decision:
+				return 7
+			recover_decision = self._should_recover(battle, attacker, weather_boost=False)
+			return 7 if recover_decision else 5
+
+		if move.id == "rest":
+			recover_decision = self._should_recover(battle, attacker, weather_boost=False, rest=True)
+			if recover_decision:
+				if self._has_sleep_cure(attacker) or self._has_move_id(attacker, "sleeptalk") or self._has_move_id(attacker, "snore"):
+					return 8
+				return 7
+			return 5
+
+		recover_decision = self._should_recover(battle, attacker, weather_boost=False)
+		return 7 if recover_decision else 5
+
+	def _is_recovery_move(self, move):
+		return move.id in {
+			"recover",
+			"slackoff",
+			"healorder",
+			"softboiled",
+			"roost",
+			"strengthsap",
+			"morningsun",
+			"synthesis",
+			"moonlight",
+			"rest",
+		}
+
+	def _is_weather_recovery_move(self, move):
+		return move.id in {"morningsun", "synthesis", "moonlight"}
+
+	def _is_sun_active(self, battle):
+		weather = getattr(battle, "weather", {})
+		return Weather.SUNNYDAY in weather or Weather.DESOLATELAND in weather
+
+	def _should_recover(self, battle, attacker, weather_boost=False, rest=False):
+		hp_frac = getattr(attacker, "current_hp_fraction", 0)
+		if getattr(attacker, "status", None) == Status.TOX:
+			return False
+
+		recovery_pct = 1.0 if rest else (0.67 if weather_boost else 0.5)
+		recovery_hp = attacker.max_hp * recovery_pct
+
+		if self._can_be_ko_by_opponents(battle, attacker, recovery_hp):
+			return False
+
+		if self._is_faster_than_any_opponent(battle, attacker):
+			if self._can_be_ko_by_opponents(battle, attacker, recovery_hp, allow_after_recover=True):
+				return True
+			if 0.4 < hp_frac < 0.66:
+				return random.random() < 0.5
+			if hp_frac < 0.4:
+				return True
+		else:
+			if hp_frac < 0.7:
+				return random.random() < 0.75
+			if hp_frac < 0.5:
+				return True
+		return False
+
+	def _can_be_ko_by_opponents(self, battle, attacker, recovery_hp, allow_after_recover=False):
+		opponents = [p for p in battle.opponent_active_pokemon if p is not None]
+		if not opponents:
+			return False
+		current_hp = self._get_target_current_hp(attacker)
+		if current_hp is None:
+			return False
+		post_recover_hp = min(attacker.max_hp, current_hp + recovery_hp)
+		for opponent in opponents:
+			if not allow_after_recover and self._can_ko_target(battle, opponent, attacker):
+				return True
+			if allow_after_recover:
+				moves = getattr(opponent, "moves", {})
+				for move in moves.values():
+					if not self._is_damaging(move):
+						continue
+					if self._estimate_damage(battle, opponent, move, attacker, use_max_roll=True) >= post_recover_hp:
+						return True
+		return False
+
+	def _is_faster_than_any_opponent(self, battle, attacker):
+		opponents = [p for p in battle.opponent_active_pokemon if p is not None]
+		return any(self._is_faster(attacker, opp) for opp in opponents)
+
+	def _has_sleep_cure(self, attacker):
+		item = getattr(attacker, "item", None)
+		return item in {"lumberry", "chestoberry"}
 
 	def _score_setup_move(self, battle, attacker, target, move):
 		if self._threatened_by_ko(battle, attacker, target):
@@ -990,6 +1095,15 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 				continue
 			damage = self._estimate_damage(battle, attacker, move, defender, use_max_roll=True)
 			if damage >= current_hp:
+				return True
+		return False
+
+	def _is_threatened_by_any_faster_opponent(self, battle, attacker):
+		opponents = [p for p in battle.opponent_active_pokemon if p is not None]
+		for opponent in opponents:
+			if not self._is_faster(opponent, attacker):
+				continue
+			if self._is_threatened_by(battle, opponent, attacker):
 				return True
 		return False
 
