@@ -243,6 +243,14 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 				bonus += 2
 			return bonus
 
+		if move_id in {"explosion", "selfdestruct", "mistyexplosion"}:
+			score = self._score_boom_move(battle, attacker)
+			if score == -20:
+				return score
+			if self._both_last_mon(battle):
+				score -= 1
+			return score
+
 		if move_id == "pursuit":
 			bonus = 0
 			if self._is_faster(attacker, target):
@@ -286,6 +294,65 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 			return 9 if getattr(attacker, "item", None) == "powerherb" else -20
 
 		return 0
+
+	def _score_boom_move(self, battle, attacker):
+		if self._is_last_mon(battle) and self._opponent_has_multiple_alive(battle):
+			return -20
+		hp_frac = getattr(attacker, "current_hp_fraction", 1.0)
+		if hp_frac < 0.1:
+			return 10
+		if hp_frac < 0.33:
+			return 8 if random.random() < 0.7 else 0
+		if hp_frac < 0.66:
+			return 7 if random.random() < 0.5 else 0
+		return 7 if random.random() < 0.05 else 0
+
+	def _is_last_mon(self, battle):
+		ally_alive, _ = self._alive_counts(battle)
+		return ally_alive <= 1
+
+	def _both_last_mon(self, battle):
+		ally_alive, opp_alive = self._alive_counts(battle)
+		return ally_alive <= 1 and opp_alive <= 1
+
+	def _opponent_has_multiple_alive(self, battle):
+		_, opp_alive = self._alive_counts(battle)
+		return opp_alive > 1
+
+	def _alive_counts(self, battle):
+		ally = self._count_alive(getattr(battle, "team", None))
+		opp = self._count_alive(getattr(battle, "opponent_team", None))
+		if ally == 0:
+			ally = self._count_alive(self._active_list(battle.active_pokemon))
+		if opp == 0:
+			opp = self._count_alive(self._active_list(battle.opponent_active_pokemon))
+		return ally, opp
+
+	def _active_list(self, active):
+		if isinstance(active, list):
+			return active
+		if active is None:
+			return []
+		return [active]
+
+	def _count_alive(self, team):
+		if not team:
+			return 0
+		pokemon_list = list(team.values()) if isinstance(team, dict) else list(team)
+		count = 0
+		for pokemon in pokemon_list:
+			if pokemon is None:
+				continue
+			if getattr(pokemon, "fainted", False):
+				continue
+			current_hp = getattr(pokemon, "current_hp", None)
+			if current_hp is not None and current_hp <= 0:
+				continue
+			current_frac = getattr(pokemon, "current_hp_fraction", None)
+			if current_frac is not None and current_frac <= 0:
+				continue
+			count += 1
+		return count
 
 	def _move_target_position(self, battle, attacker, move, target):
 		move_target = getattr(move, "deduced_target", None) or getattr(move, "target", None)
@@ -358,6 +425,9 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 				return -20
 			return 6
 
+		if move_id == "coaching":
+			return self._score_coaching(battle, attacker)
+
 		if move_id in {"thunderwave", "stunspore", "glare", "nuzzle", "zapcannon"}:
 			return self._score_paralysis(attacker, target)
 
@@ -391,7 +461,51 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 		if move_id in {"protect", "kingsshield"}:
 			return self._score_protect(attacker, target)
 
+		if move_id == "batonpass":
+			return self._score_baton_pass(battle, attacker)
+
 		return 0
+
+	def _score_coaching(self, battle, attacker):
+		partner = self._get_partner(battle, attacker)
+		if partner is None:
+			return -20
+		if getattr(partner, "ability", None) == "contrary":
+			return -20
+		score = 6
+		atk_boost = self._get_boost(partner, "atk")
+		def_boost = self._get_boost(partner, "def")
+		if atk_boost < 2:
+			score += 1 - atk_boost
+		if def_boost < 2:
+			score += 1 - def_boost
+		if random.random() < 0.8:
+			score += 1
+		return score
+
+	def _score_baton_pass(self, battle, attacker):
+		if not self._has_available_switch(battle):
+			return -20
+		if self._has_substitute(attacker) or self._has_positive_boost(attacker):
+			return 14
+		return 0
+
+	def _has_available_switch(self, battle):
+		available = getattr(battle, "available_switches", None)
+		if isinstance(available, list):
+			return any(slot for slot in available)
+		return bool(available)
+
+	def _has_substitute(self, pokemon):
+		effects = getattr(pokemon, "effects", {})
+		return Effect.SUBSTITUTE in effects
+
+	def _has_positive_boost(self, pokemon):
+		try:
+			boosts = pokemon.boosts
+		except Exception:
+			return False
+		return any(value > 0 for value in boosts.values())
 
 	def _score_protect(self, attacker, target):
 		score = 6

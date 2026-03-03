@@ -1,0 +1,43 @@
+Garganacl @ Leftovers
+Ability: Purifying Salt
+Level: 50
+Tera Type: Rock
+EVs: 252 HP / 4 Def / 252 SpD
+Careful Nature
+- Explosion
+- Protect
+- Recover
+- Salt Cure
+
+Golem-Alola @ Normal Gem
+Ability: Galvanize
+Level: 50
+Tera Type: Electric
+EVs: 252 HP / 252 Atk / 4 Def
+Adamant Nature
+- Explosion
+- Protect
+- Wild Charge
+- Rock Slide
+
+Indeedee-F @ Psychic Seed
+Ability: Psychic Surge
+Level: 50
+Tera Type: Fairy
+EVs: 252 HP / 4 Def / 252 SpD
+Calm Nature
+- Follow Me
+- Helping Hand
+- Heal Pulse
+- Protect
+
+Dragapult @ Choice Scarf
+Ability: Infiltrator
+Level: 50
+Tera Type: Ghost
+EVs: 4 HP / 252 Atk / 252 Spe
+Jolly Nature
+- Phantom Force
+- Dragon Darts
+- U-turn
+- Protect
