@@ -428,6 +428,15 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 		if move_id == "coaching":
 			return self._score_coaching(battle, attacker)
 
+		if move_id == "finalgambit":
+			return self._score_final_gambit(battle, attacker, move, target)
+
+		if move_id == "memento":
+			return self._score_memento(battle, attacker)
+
+		if move_id == "destinybond":
+			return self._score_destiny_bond(battle, attacker, target)
+
 		if move_id in {"thunderwave", "stunspore", "glare", "nuzzle", "zapcannon"}:
 			return self._score_paralysis(attacker, target)
 
@@ -489,6 +498,45 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 		if self._has_substitute(attacker) or self._has_positive_boost(attacker):
 			return 14
 		return 0
+
+	def _score_final_gambit(self, battle, attacker, move, target):
+		if attacker is None or target is None:
+			return 0
+		if self._is_immune_to_move(battle, move, target):
+			return -20
+
+		attacker_hp = self._get_target_current_hp(attacker)
+		target_hp = self._get_target_current_hp(target)
+		if attacker_hp is None or target_hp is None:
+			return 6
+
+		if self._is_faster(attacker, target):
+			if attacker_hp > target_hp:
+				return 8
+			if self._is_threatened_by(battle, target, attacker):
+				return 7
+		return 6
+
+	def _score_memento(self, battle, attacker):
+		if self._is_last_mon(battle):
+			return -20
+		hp_frac = getattr(attacker, "current_hp_fraction", 0) or 0
+		if hp_frac < 0.1:
+			return 16
+		if hp_frac < 0.33:
+			return 14 if random.random() < 0.7 else 6
+		if hp_frac < 0.66:
+			return 13 if random.random() < 0.5 else 6
+		return 13 if random.random() < 0.05 else 6
+
+	def _score_destiny_bond(self, battle, attacker, target):
+		if attacker is None or target is None:
+			return 0
+		if self._is_faster(attacker, target):
+			if self._is_threatened_by(battle, target, attacker):
+				return 7 if random.random() < 0.81 else 6
+			return 6
+		return 5 if random.random() < 0.5 else 6
 
 	def _has_available_switch(self, battle):
 		available = getattr(battle, "available_switches", None)

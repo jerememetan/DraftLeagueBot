@@ -111,8 +111,6 @@ Implemented
 - Explosion/Self-Destruct/Misty Explosion scoring.
 - Debug logging for decisions and final orders (toggle with --debug).
 
-Remaining / Not Yet Implemented
-- Memento/Final Gambit/Destiny Bond logic.
 
 Recent Additions (since last update)
 - Aurora Veil snow/hail gate and higher base score; screens blocked if already active.
@@ -127,6 +125,7 @@ Recent Additions (since last update)
 - Avoid attacking into immunity (general check).
 - Added Coaching and Baton Pass logic.
 - Added Boom move (Explosion/Self-Destruct/Misty Explosion) logic.
+- Added Memento, Final Gambit, and Destiny Bond logic.
 
 Remaining / Not Yet Implemented
-- Memento/Final Gambit/Destiny Bond logic.
+- None currently listed.
