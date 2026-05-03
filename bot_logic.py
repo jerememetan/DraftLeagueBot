@@ -20,9 +20,6 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 		self._debug = debug
 		self._debug_turns = debug_turns
 
-	def _should_mega_evolve(self, pokemon, battle):
-		return False
-
 	def _should_z_move(self, pokemon, battle):
 		return False
 
@@ -69,9 +66,26 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 
 			try:
 				move_target = self._move_target_position(battle, attacker, best_move, best_target)
-				orders.append(self.create_order(best_move, move_target=move_target))
+				# Prefer explicit battle-provided availability: can_mega_evolve per active slot
+				can_mega_from_battle = False
+				try:
+					can_mega_from_battle = bool(battle.can_mega_evolve[slot_index])
+				except Exception:
+					can_mega_from_battle = False
+				# Also respect whether we've already used Mega this battle
+				if getattr(battle, "used_mega_evolve", False):
+					can_mega_from_battle = False
+				# Use battle-provided availability; strategic gating removed
+				orders.append(self.create_order(best_move, move_target=move_target, mega=can_mega_from_battle))
 			except Exception:
-				orders.append(self.create_order(best_move))
+				can_mega_from_battle = False
+				try:
+					can_mega_from_battle = bool(battle.can_mega_evolve[slot_index])
+				except Exception:
+					can_mega_from_battle = False
+				if getattr(battle, "used_mega_evolve", False):
+					can_mega_from_battle = False
+				orders.append(self.create_order(best_move, mega=can_mega_from_battle))
 
 		if not orders:
 			return self.choose_random_move(battle)
@@ -293,6 +307,48 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 				return 9
 			return 9 if getattr(attacker, "item", None) == "powerherb" else -20
 
+		if move_id == "weatherball":
+			# Weather Ball is 50 BP normally, 100 BP in active weather
+			# Type changes based on weather: Fire/Water/Ice/Rock depending on conditions
+			weather = getattr(battle, "weather", {})
+			if not weather:
+				# No weather; 50 BP normal type is weak
+				return 2
+			
+			# Determine what type Weather Ball becomes
+			weather_type = None
+			if Weather.SUNNYDAY in weather or Weather.DESOLATELAND in weather:
+				weather_type = PokemonType.FIRE
+			elif Weather.RAINDANCE in weather or Weather.PRIMORDIALSEA in weather:
+				weather_type = PokemonType.WATER
+			elif Weather.SANDSTORM in weather:
+				weather_type = PokemonType.ROCK
+			elif Weather.HAIL in weather or Weather.SNOWSCAPE in weather:
+				weather_type = PokemonType.ICE
+			
+			if weather_type is None:
+				# Unknown weather; use neutral scoring
+				return 5
+			
+			# Check effectiveness of the changed type against target
+			if target is None:
+				return 5  # No target data; assume neutral
+			try:
+				multiplier = target.damage_multiplier(weather_type)
+				if multiplier > 1.0:
+					# Super effective! 100 BP with SE is excellent
+					return 10
+				elif multiplier == 1.0:
+					# Neutral; 100 BP is solid
+					return 6
+				else:
+					# Resisted or immune; don't use this
+					return -15
+			except Exception:
+				# Fallback: assume neutral
+				return 5
+
+		# Catch-all for unhandled moves
 		return 0
 
 	def _score_boom_move(self, battle, attacker):
@@ -427,6 +483,7 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 
 		if move_id == "coaching":
 			return self._score_coaching(battle, attacker)
+
 
 		if move_id == "finalgambit":
 			return self._score_final_gambit(battle, attacker, move, target)

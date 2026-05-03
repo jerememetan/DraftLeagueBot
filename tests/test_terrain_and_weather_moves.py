@@ -105,11 +105,7 @@ class TestLightScreenAndReflect(unittest.TestCase):
         reflect = DummyMove(base_power=0, category="status", move_type="Psychic")
         reflect.id = "reflect"
         
-        score = self.bot._score_screen_move(self.battle, attacker, reflect)
         
-        # With physical attack, score can be 7 or 8
-        self.assertGreaterEqual(score, self.BASE_SCREEN_SCORE + 1)
-        self.assertLessEqual(score, self.MAX_SCREEN_SCORE)
         # Run multiple times to check range with RNG bonuses
         scores = []
         for _ in range(100):

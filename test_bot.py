@@ -145,7 +145,6 @@ async def main():
 
     bot_account = AccountConfiguration("Bot_Opponent", None)
     resolved_battle_format = resolve_battle_format(args.format_profile, args.battle_format)
-
     if not args.battle_format and not args.no_format_prompt:
         resolved_battle_format = prompt_for_battle_format()
     
