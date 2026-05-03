@@ -152,8 +152,8 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 				score += self._rng_weight(3, 5, 0.3)
 			if self._is_super_effective(battle, move, target):
 				score += self._rng_weight(2, 4, 0.3)
-			if self._is_not_very_effective(battle,move, target):
-				score -= 2
+			# Add penalty for resisted hits
+			score += self._resisted_penalty(battle, move, target, scale=10)
 			if move.priority > 0 and self._is_threatened_by_any_faster_opponent(battle, attacker):
 				score += 11
 
@@ -344,9 +344,10 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 				elif multiplier == 1.0:
 					# Neutral; 100 BP is solid
 					return 6
-				else:
+				elif multiplier == 0:
+					return -20
 					# Resisted or immune; don't use this
-					return -15
+				return -int(round((1.0 - multiplier) * 12))
 			except Exception:
 				# Fallback: assume neutral
 				return 5
@@ -1207,7 +1208,7 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 		if hp_frac > 0.1:
 			return False
 		return self._has_status_or_effect(pokemon)
-
+   # why is this checking the last move (previous turn??) instead of the current move?
 	def _partner_using_support_or_status(self, battle, attacker):
 		partner = self._get_partner(battle, attacker)
 		if partner is None:
@@ -1601,6 +1602,8 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 		if self._should_debug(battle):
 			turn = getattr(battle, "turn", "?")
 			print(f"[AI DEBUG] turn={turn} move=tailwind speed_profile={profile}")
+		if self._side_condition_active(battle, SideCondition.TAILWIND):
+			score += 5
 		if profile is None:
 			return score
 		min_ally, max_ally, min_foe, max_foe = profile
@@ -1688,6 +1691,26 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 			except Exception:
 				multiplier = 1.0
 		return multiplier < 1.0
+
+	def _resisted_penalty(self, battle, move, target, scale=10):
+		"""
+		Return a negative penalty scaled by how much the move is resisted.
+		- multiplier == 0 -> -20 handled elsewhere, but keep as safeguard
+		- multiplier < 1.0 -> penalty = -round((1 - multiplier) * scale)
+		- multiplier >= 1.0 -> 0
+		"""
+		try:
+			if hasattr(battle, "damage_multiplier"):
+				mult = battle.damage_multiplier(move, target)
+			else:
+				mult = target.damage_multiplier(move)
+		except Exception:
+			return 0
+		if mult == 0:
+			return -20
+		if mult < 1.0:
+			return -int(round((1.0 - mult) * scale))
+		return 0
 	def _is_super_effective_on_target(self, move, target):
 		try:
 			return target.damage_multiplier(move) > 1.0

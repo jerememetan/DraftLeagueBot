@@ -74,9 +74,6 @@ Recovery
 - Use the recovery decision logic from AI_LOGIC.txt as-is, but apply per-target
   damage evaluation (use the most threatening opponent if needed).
 
-Known Fixes (Bug Parity = FIX)
-- Do not replicate the documented bugs. Implement the intended checks where
-  the doc says "bug in the code".
 
 Implementation Notes
 - Use per-target scoring first, then choose best target per move.
