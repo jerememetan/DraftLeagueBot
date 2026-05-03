@@ -13,70 +13,14 @@ Reference: AI_LOGIC.txt Tailwind (line ~456) and Trick Room (line ~465)
 
 import unittest
 from unittest.mock import MagicMock, patch
-from types import SimpleNamespace
 import sys
 from pathlib import Path
-from enum import Enum
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from bot_logic import DoublesMvpBot
-
-
-class MoveCategory(Enum):
-    """Minimal MoveCategory enum for testing."""
-    PHYSICAL = "physical"
-    SPECIAL = "special"
-    STATUS = "status"
-
-
-class DummyMove:
-    """Move mock with proper attributes for poke-env compatibility."""
-    def __init__(self, base_power=80, category="physical", move_type="Normal", move_id="tackle"):
-        self.base_power = base_power
-        # Handle both string and enum category
-        if isinstance(category, str):
-            self.category = MoveCategory[category.upper()]
-        else:
-            self.category = category
-        self.type = move_type
-        self.id = move_id
-
-
-class DummyPokemon:
-    """Minimal Pokemon mock for testing."""
-    def __init__(self, name="Pikachu", current_hp=100, level=50, max_hp=100,
-                 stats=None, types=None, ability=None, item=None):
-        self.name = name
-        self.current_hp = current_hp
-        self.level = level
-        self.max_hp = max_hp
-        self.stats = stats or {
-            "hp": 100, "atk": 100, "def": 100,
-            "spa": 100, "spd": 100, "spe": 100
-        }
-        self.types = types or ["Normal"]
-        self.ability = ability
-        self.item = item
-        self.boosts = {"atk": 0, "def": 0, "spa": 0, "spd": 0, "spe": 0}
-        self.status = None
-        self.side_conditions = []
-        self.moves = {}
-
-
-class DummyBattle:
-    """Minimal Battle mock for testing."""
-    def __init__(self):
-        self.active_pokemon = [None, None]  # Two player Pokemon (doubles)
-        self.opponent_active_pokemon = [None, None]  # Two opponent Pokemon (doubles)
-        self.player_team = {}
-        self.opponent_team = {}
-        self.weather = None
-        self.trick_room = False
-        self.player_side_conditions = {}
-        self.opponent_side_conditions = {}
-        self.side_conditions = {}
+from mocks import MoveCategory, DummyMove, DummyPokemon, DummyBattle
 
 
 class TestIsFaster(unittest.TestCase):

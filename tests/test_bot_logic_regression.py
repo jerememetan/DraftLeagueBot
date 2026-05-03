@@ -5,18 +5,8 @@ from unittest.mock import patch
 
 from bot_logic import DoublesMvpBot
 from poke_env.battle.side_condition import SideCondition
-
-
-class DummyBattle(SimpleNamespace):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        if not hasattr(self, "side_conditions"):
-            self.side_conditions = {}
-        if not hasattr(self, "trick_room"):
-            self.trick_room = False
-
-    def damage_multiplier(self, move, target):
-        return getattr(target, "damage_multiplier_value", 1.0)
+from mocks import DummyBattle
+from fixtures import make_pokemon, make_move
 
 
 class BotLogicRegressionTests(unittest.TestCase):
