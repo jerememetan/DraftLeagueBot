@@ -9,6 +9,7 @@ from poke_env.battle.side_condition import SideCondition
 from poke_env.battle.weather import Weather
 from poke_env.battle.pokemon_type import PokemonType
 from poke_env.battle.target import Target
+from poke_env.calc import calculate_damage
 from poke_env.player.battle_order import DoubleBattleOrder, PassBattleOrder
 
 
@@ -111,13 +112,20 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 
 	def _log_decision(self, battle, slot_index, attacker, scored, best_move, best_target):
 		turn = getattr(battle, "turn", "?")
-		move_id = getattr(best_move, "id", "?")
-		target_name = getattr(best_target, "name", "?")
 		attacker_name = getattr(attacker, "name", "?")
-		best_score = max(s[0] for s in scored) if scored else 0
+		
+		# Sort by score descending and show top 3 candidates
+		sorted_scored = sorted(scored, key=lambda x: x[0], reverse=True)
+		top_moves = sorted_scored[:3]
+		
+		top_str = " | ".join(
+			f"{getattr(m, 'id', '?')}→{getattr(t, 'name', '?')} ({s:.2f})"
+			for s, m, t in top_moves
+		)
+		
 		print(
 			f"[AI DEBUG] turn={turn} slot={slot_index} attacker={attacker_name} "
-			f"move={move_id} target={target_name} score={best_score:.2f}"
+			f"top_candidates=[{top_str}]"
 		)
 
 	def _log_final_orders(self, orders):
@@ -131,11 +139,23 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 			if self._is_immune_to_move(battle, move, target):
 				return -20
 			damage = self._estimate_damage(battle, attacker, move, target)
+			
+			# DEBUG: Show damage calcs
+			if self._should_debug(battle):
+				target_name = getattr(target, "name", "?")
+				move_name = getattr(move, "id", "?")
+				print(f"    [DAMAGE] {move_name}→{target_name}: {damage:.1f}", end="")
+			
 			highest_damage = self._is_highest_damage_move(
 				battle, attacker, move, target, opponents, attacker_moves, damage
 			)
 			if highest_damage:
+				if self._should_debug(battle):
+					print(f" (HIGHEST)", end="")
 				score += self._rng_weight(6, 8, 0.8)
+			
+			if self._should_debug(battle):
+				print()  # newline after damage debug
 
 			if self._estimated_kill(target, damage):
 				if self._is_faster(attacker, target) or (
@@ -1511,19 +1531,32 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 		if base <= 0:
 			return 0.0
 
-		level = getattr(attacker, "level", 100) or 100
-		attack_stat, defense_stat = self._get_offense_defense_stats(attacker, target, move)
-		stab = 1.5 if self._has_stab(attacker, move) else 1.0
-		multiplier = 1.0
-		if hasattr(battle, "damage_multiplier"):
-			try:
-				multiplier = battle.damage_multiplier(move, target)
-			except Exception:
-				multiplier = 1.0
-		roll = 1.0 if use_max_roll else self._damage_roll_factor()
+		try:
+			attacker_side = getattr(battle, "player_role", None) or "p1"
+			defender_side = getattr(battle, "opponent_role", None) or "p2"
+			attacker_identifier = attacker.identifier(attacker_side)
+			defender_identifier = target.identifier(defender_side)
+			min_damage, max_damage = calculate_damage(
+				attacker_identifier,
+				defender_identifier,
+				move,
+				battle,
+			)
+			return float(max_damage if use_max_roll else (min_damage + max_damage) / 2)
+		except Exception:
+			level = getattr(attacker, "level", 100) or 100
+			attack_stat, defense_stat = self._get_offense_defense_stats(attacker, target, move)
+			stab = 1.5 if self._has_stab(attacker, move) else 1.0
+			multiplier = 1.0
+			if hasattr(battle, "damage_multiplier"):
+				try:
+					multiplier = battle.damage_multiplier(move, target)
+				except Exception:
+					multiplier = 1.0
+			roll = 1.0 if use_max_roll else self._damage_roll_factor()
 
-		base_damage = (((2 * level / 5 + 2) * base * attack_stat / max(1, defense_stat)) / 50) + 2
-		return base_damage * stab * multiplier * roll
+			base_damage = (((2 * level / 5 + 2) * base * attack_stat / max(1, defense_stat)) / 50) + 2
+			return base_damage * stab * multiplier * roll
 
 	def _is_highest_damage_move(self, battle, attacker, move, target, opponents, attacker_moves, current_damage):
 		current = current_damage
