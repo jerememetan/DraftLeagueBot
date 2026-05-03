@@ -10,7 +10,9 @@ from poke_env.battle.weather import Weather
 from poke_env.battle.pokemon_type import PokemonType
 from poke_env.battle.target import Target
 from poke_env.calc import calculate_damage
+from poke_env.stats import compute_raw_stats
 from poke_env.player.battle_order import DoubleBattleOrder, PassBattleOrder
+from poke_env.data import GenData
 
 
 class DoublesMvpBot(MaxBasePowerPlayer):
@@ -1532,31 +1534,114 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 			return 0.0
 
 		try:
-			attacker_side = getattr(battle, "player_role", None) or "p1"
-			defender_side = getattr(battle, "opponent_role", None) or "p2"
-			attacker_identifier = attacker.identifier(attacker_side)
-			defender_identifier = target.identifier(defender_side)
-			min_damage, max_damage = calculate_damage(
-				attacker_identifier,
-				defender_identifier,
-				move,
-				battle,
-			)
-			return float(max_damage if use_max_roll else (min_damage + max_damage) / 2)
-		except Exception:
-			level = getattr(attacker, "level", 100) or 100
-			attack_stat, defense_stat = self._get_offense_defense_stats(attacker, target, move)
-			stab = 1.5 if self._has_stab(attacker, move) else 1.0
-			multiplier = 1.0
-			if hasattr(battle, "damage_multiplier"):
-				try:
-					multiplier = battle.damage_multiplier(move, target)
-				except Exception:
-					multiplier = 1.0
-			roll = 1.0 if use_max_roll else self._damage_roll_factor()
+			if battle is not None:
+				attacker_side = self._resolve_identifier_side(battle, attacker)
+				defender_side = self._resolve_identifier_side(battle, target)
+				if attacker_side is not None and defender_side is not None:
+					attacker_identifier = attacker.identifier(attacker_side)
+					defender_identifier = target.identifier(defender_side)
+					self._hydrate_damage_stats(attacker)
+					self._hydrate_damage_stats(target)
+					min_damage, max_damage = calculate_damage(
+						attacker_identifier,
+						defender_identifier,
+						move,
+						battle,
+					)
+					result = float(max_damage if use_max_roll else (min_damage + max_damage) / 2)
+					if self._should_debug(battle) and result > 500:
+						print(f"      [CALC_DEBUG] Using poke-env calc: min={min_damage}, max={max_damage}, result={result:.1f}")
+					return result
+				if self._should_debug(battle):
+					print("      [CALC_DEBUG] Fallback: could not resolve sides for calc")
+		except Exception as e:
+			if self._should_debug(battle):
+				print(f"      [CALC_DEBUG] Fallback due to: {type(e).__name__}: {str(e)[:50]}")
 
-			base_damage = (((2 * level / 5 + 2) * base * attack_stat / max(1, defense_stat)) / 50) + 2
-			return base_damage * stab * multiplier * roll
+		level = getattr(attacker, "level", 100) or 100
+		attack_stat, defense_stat = self._get_offense_defense_stats(attacker, target, move)
+		stab = 1.5 if self._has_stab(attacker, move) else 1.0
+		multiplier = 1.0
+		if hasattr(battle, "damage_multiplier"):
+			try:
+				multiplier = battle.damage_multiplier(move, target)
+			except Exception:
+				multiplier = 1.0
+		roll = 1.0 if use_max_roll else self._damage_roll_factor()
+
+		base_damage = (((2 * level / 5 + 2) * base * attack_stat / max(1, defense_stat)) / 50) + 2
+		result = base_damage * stab * multiplier * roll
+		if self._should_debug(battle) and result > 500:
+			print(f"      [CALC_DEBUG] Using fallback: base={base_damage:.1f}, stab={stab}, mult={multiplier}, roll={roll}, result={result:.1f}")
+		return result
+
+	def _resolve_identifier_side(self, battle, pokemon):
+		if battle is None or pokemon is None:
+			return None
+
+		player_role = getattr(battle, "player_role", None) or "p1"
+		opponent_role = getattr(battle, "opponent_role", None)
+		if opponent_role is None:
+			opponent_role = "p2" if player_role == "p1" else "p1"
+
+		active = getattr(battle, "active_pokemon", None)
+		if isinstance(active, list):
+			if any(p is pokemon for p in active):
+				return player_role
+		elif active is pokemon:
+			return player_role
+
+		opponent_active = getattr(battle, "opponent_active_pokemon", None)
+		if isinstance(opponent_active, list):
+			if any(p is pokemon for p in opponent_active):
+				return opponent_role
+		elif opponent_active is pokemon:
+			return opponent_role
+
+		team = getattr(battle, "team", None)
+		if isinstance(team, dict) and any(p is pokemon for p in team.values()):
+			return player_role
+
+		opponent_team = getattr(battle, "opponent_team", None)
+		if isinstance(opponent_team, dict) and any(p is pokemon for p in opponent_team.values()):
+			return opponent_role
+
+		identifier = getattr(pokemon, "_identifier", None)
+		if isinstance(identifier, str) and len(identifier) >= 2 and identifier[1].isdigit() and identifier[0] == "p":
+			return identifier[:2]
+
+		return None
+
+	def _hydrate_damage_stats(self, pokemon):
+		if pokemon is None:
+			return
+		try:
+			stats = getattr(pokemon, "stats", None)
+			if stats and all(isinstance(value, (int, float)) for value in stats.values()):
+				return
+			species = getattr(pokemon, "species", None)
+			if not species:
+				return
+			level = getattr(pokemon, "level", 100) or 100
+			gen_data = GenData.from_gen(getattr(pokemon, "gen", 9) or 9)
+			raw_stats = compute_raw_stats(
+				species,
+				[0, 0, 0, 0, 0, 0],
+				[31, 31, 31, 31, 31, 31],
+				level,
+				"hardy",
+				gen_data,
+			)
+			pokemon.stats = {
+				"hp": raw_stats[0],
+				"atk": raw_stats[1],
+				"def": raw_stats[2],
+				"spa": raw_stats[3],
+				"spd": raw_stats[4],
+				"spe": raw_stats[5],
+			}
+		except Exception:
+			return
 
 	def _is_highest_damage_move(self, battle, attacker, move, target, opponents, attacker_moves, current_damage):
 		current = current_damage
@@ -1814,9 +1899,22 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 
 	def _stat(self, pokemon, key):
 		try:
-			return max(1, pokemon.stats.get(key, 1))
+			if pokemon.stats and key in pokemon.stats:
+				return max(1, int(pokemon.stats[key]))
 		except Exception:
-			return 1
+			pass
+		# Fallback: use base stat from Pokédex if actual stats unavailable
+		try:
+			species = getattr(pokemon, "species", None)
+			if species:
+				gen_data = GenData.from_gen(9)  # Gen 9 (Scarlet/Violet)
+				pokemon_data = gen_data.pokedex.get(species.lower())
+				if pokemon_data and "baseStats" in pokemon_data:
+					base_stat = pokemon_data["baseStats"].get(key, 1)
+					return max(1, int(base_stat))
+		except Exception:
+			pass
+		return 1
 
 	def _has_stab(self, attacker, move):
 		move_type = getattr(move, "type", None)
