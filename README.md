@@ -1,7 +1,7 @@
 # Draft League Bot
 
 ## Requirements
-- Local Pokemon Showdown server
+- Local Pokemon Showdown server -> dpwnload from https://github.com/smogon/pokemon-showdown (Open Source)
 - Python 3.12+ with a virtual environment
 
 ## Setup
@@ -11,14 +11,17 @@
 node pokemon-showdown
 ```
 
-2) In `config/config.js`, set:
-
+2) In showdown-master, `config/config.js`, set:
+(You will need to run node pokemon-showdown at least once to see config.js)
 ```js
 exports.noguestsecurity = true
 ```
 
-## Run the Bot
+## Run the Bot (Basic Version)
 From the DraftLeagueBot folder:
+-> Prompts for etiher 4v4 doubles draft or reg M-A
+-> Prompts for Trainers Name to select
+-> Go to http://localhost:8000 , "Find a user" -> "Bot_Opponent" -> challenge
 
 ```bash
 ".venv/Scripts/python.exe" test_bot.py
@@ -28,7 +31,7 @@ From the DraftLeagueBot folder:
 Enable debug logs and use a specific team file when `--debug` is set:
 
 ```bash
-".venv/Scripts/python.exe" test_bot.py --debug --team-file team5.txt
+".venv/Scripts/python.exe" test_bot.py --debug --team-file teamfilename.txt
 ```
 
 ### Battle Format
@@ -71,5 +74,6 @@ Loads the team and exits (no battle):
 The bot uses custom doubles-only scoring rules derived from `AI_LOGIC.txt`.
 See `AI_LOGIC_DOUBLES_MVP.txt` for the current implemented logic and remaining work.
 
-## Unit Testings
-The 
+## Adding new trainers
+Trainers can be added as new folders in /Trainers. To add teams in trainers, copy and paste your txt file of the pokepaste (refer to /Trainers/TESTER as reference)
+

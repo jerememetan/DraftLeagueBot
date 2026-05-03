@@ -39,7 +39,7 @@ def prompt_for_battle_format():
 
 def load_random_team_from_challenger(challenger_name, team_file=None):
     """Load a random team from a challenger's folder or a specific team file."""
-    script_dir = Path(__file__).parent
+    script_dir = Path(__file__).parent / "Trainers"
     challenger_folder = script_dir / challenger_name
     
     if not challenger_folder.exists():
@@ -86,7 +86,7 @@ def load_random_team_from_challenger(challenger_name, team_file=None):
 
 def list_available_challengers():
     """List all available challenger folders"""
-    script_dir = Path(__file__).parent
+    script_dir = Path(__file__).parent / "Trainers"
     challengers = [f.name for f in script_dir.iterdir() 
                    if f.is_dir() and not f.name.startswith('.') and not f.name.startswith('__')]
     return challengers
