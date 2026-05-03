@@ -12,7 +12,6 @@ Reference: AI_LOGIC.txt Tailwind (line ~456) and Trick Room (line ~465)
 """
 
 import unittest
-from unittest.mock import MagicMock, patch
 import sys
 from pathlib import Path
 
@@ -54,23 +53,19 @@ class TestIsFaster(unittest.TestCase):
         self.assertFalse(self.bot._is_faster(pokemon1, pokemon2))
         self.assertFalse(self.bot._is_faster(pokemon2, pokemon1))
     
-    def test_is_faster_with_speed_boosts(self):
-        """Test speed comparison with stat boosts.
+    def test_is_faster_ignores_stat_boosts(self):
+        """Test that speed comparison ignores stat boosts (compares raw stats only).
         
-        Boosts multiply speed: +1 = 1.5x, +2 = 2.0x, etc.
+        _is_faster just compares raw stats["spe"], doesn't use boost multipliers.
         """
         faster_boosted = DummyPokemon("Pikachu", stats={
             "hp": 100, "atk": 100, "def": 100, "spa": 100, "spd": 100, "spe": 60
         })
-        # Note: _is_faster just compares raw stats["spe"], doesn't use boosts
-        # This test documents current behavior
-        
         slower = DummyPokemon("Machamp", stats={
             "hp": 100, "atk": 100, "def": 100, "spa": 100, "spd": 100, "spe": 100
         })
         
-        # Even with stat boosts not applied, we can verify speed comparison
-        # Base: Pikachu 60 < Machamp 100
+        # Pikachu 60 < Machamp 100, even if boosts were applied
         self.assertFalse(self.bot._is_faster(faster_boosted, slower))
 
 
@@ -88,8 +83,8 @@ class TestIsThreatenedBy(unittest.TestCase):
     def test_is_threatened_by_strong_opponent(self):
         """Test Pokemon is threatened if opponent has KO move."""
         defender = DummyPokemon(
-            "Blissey", current_hp=100, max_hp=100, stats={
-                "hp": 100, "atk": 100, "def": 100, "spa": 100, "spd": 200, "spe": 100
+            "Charizard", current_hp=100, max_hp=100, stats={
+                "hp": 100, "atk": 100, "def": 65, "spa": 100, "spd": 80, "spe": 100
             }
         )
         # Add defender to battle
@@ -100,13 +95,15 @@ class TestIsThreatenedBy(unittest.TestCase):
                 "hp": 100, "atk": 100, "def": 100, "spa": 185, "spd": 100, "spe": 120
             }
         )
-        # Alakazam would need damaging moves in its move pool
+        # Alakazam with strong moves in its move pool
         attacker.moves = {
-            "psychic": DummyMove(base_power=90, category="special", move_type="Psychic")
+            "psychic": DummyMove(base_power=120, category="special", move_type="Psychic")
         }
+        # Add attacker to opponent side for threat evaluation
+        self.battle.opponent_active_pokemon[0] = attacker
         
         threat = self.bot._is_threatened_by(self.battle, attacker, defender)
-        self.assertIsInstance(threat, bool)
+        self.assertTrue(threat)
     
     def test_is_not_threatened_by_weak_opponent(self):
         """Test Pokemon is not threatened by weak opponents."""
@@ -195,6 +192,9 @@ class TestScoreTailwind(unittest.TestCase):
     Base: +6, Additional scores based on speed comparisons
     - If already active: -20
     """
+    
+    TAILWIND_BASE_SCORE = 6
+    ALREADY_ACTIVE_PENALTY = -20
 
     def setUp(self):
         self.bot = DoublesMvpBot()
@@ -230,8 +230,7 @@ class TestScoreTailwind(unittest.TestCase):
         
         score = self.bot._score_tailwind(self.battle)
         # Base is 6, + bonuses for being slower = should be > 6
-        self.assertGreater(score, 0)
-        self.assertNotEqual(score, -20)  # Not already active
+        self.assertGreater(score, self.TAILWIND_BASE_SCORE)
 
 
 class TestScoreTrickRoom(unittest.TestCase):
@@ -241,6 +240,9 @@ class TestScoreTrickRoom(unittest.TestCase):
     Base: +6, Additional scoring based on speed/conditions
     - If already active: -20
     """
+    
+    TRICK_ROOM_BASE_SCORE = 6
+    ALREADY_ACTIVE_PENALTY = -20
 
     def setUp(self):
         self.bot = DoublesMvpBot()
@@ -268,8 +270,7 @@ class TestScoreTrickRoom(unittest.TestCase):
         
         score = self.bot._score_trick_room(self.battle)
         # Base is 6, + bonuses for being slower = should be > 6
-        self.assertGreater(score, 0)
-        self.assertNotEqual(score, -20)  # Not already active
+        self.assertGreater(score, self.TRICK_ROOM_BASE_SCORE)
     
     def test_trick_room_team_faster_than_opponent(self):
         """Trick Room scores lower when AI team is faster (reversal not beneficial)."""
@@ -285,7 +286,7 @@ class TestScoreTrickRoom(unittest.TestCase):
         
         score = self.bot._score_trick_room(self.battle)
         # When faster, trick room gets penalty (max_ally > max_foe reduces score by 5)
-        self.assertLess(score, 6)
+        self.assertLess(score, self.TRICK_ROOM_BASE_SCORE)
 
 
 if __name__ == "__main__":

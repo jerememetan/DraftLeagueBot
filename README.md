@@ -46,3 +46,6 @@ Loads the team and exits (no battle):
 ## AI Battle Logic
 The bot uses custom doubles-only scoring rules derived from `AI_LOGIC.txt`.
 See `AI_LOGIC_DOUBLES_MVP.txt` for the current implemented logic and remaining work.
+
+## Unit Testings
+The 
