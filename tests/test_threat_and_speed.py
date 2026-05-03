@@ -124,7 +124,7 @@ class TestIsThreatenedBy(unittest.TestCase):
         attacker.moves = {
             "thunderbolt": DummyMove(base_power=90, category="special", move_type="Electric")
         }
-        
+        self.battle.opponent_active_pokemon[0] = attacker
         threat = self.bot._is_threatened_by(self.battle, attacker, defender)
         # Weak Pokemon with bulky defender shouldn't threaten
         self.assertFalse(threat)
@@ -211,7 +211,7 @@ class TestScoreTailwind(unittest.TestCase):
             self.battle.side_conditions = {SideCondition.TAILWIND: (100, 3)}
             
             score = self.bot._score_tailwind(self.battle)
-            self.assertEqual(score, -20)
+            self.assertEqual(score, self.ALREADY_ACTIVE_PENALTY)
         except ImportError:
             # Skip if poke_env not available in test context
             self.skipTest("poke_env not available")
@@ -254,7 +254,7 @@ class TestScoreTrickRoom(unittest.TestCase):
         self.battle.trick_room = True  # Already active
         
         score = self.bot._score_trick_room(self.battle)
-        self.assertEqual(score, -20)
+        self.assertEqual(score, self.ALREADY_ACTIVE_PENALTY)
     
     def test_trick_room_team_slower_than_opponent(self):
         """Trick Room scores bonus when AI team is slower (reversal beneficial)."""

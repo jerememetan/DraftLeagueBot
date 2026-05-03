@@ -10,7 +10,6 @@ Reference: AI_LOGIC.txt lines 23-54 (All damaging moves scoring)
 """
 
 import unittest
-from unittest.mock import MagicMock, patch
 import sys
 from pathlib import Path
 
@@ -23,6 +22,11 @@ from mocks import MoveCategory, DummyMove, DummyPokemon, DummyBattle
 
 class TestDamageEstimation(unittest.TestCase):
     """Tests for _estimate_damage helper."""
+    
+    # Damage estimation constants
+    MIN_BASE_DAMAGE = 30
+    MAX_BASE_DAMAGE = 60
+    MIN_STAB_DAMAGE = 40
 
     def setUp(self):
         self.bot = DoublesMvpBot()
@@ -45,8 +49,8 @@ class TestDamageEstimation(unittest.TestCase):
         
         damage = self.bot._estimate_damage(self.battle, attacker, move, defender)
         # Base calculation should be in reasonable range (accounts for damage rolls)
-        self.assertGreater(damage, 30)
-        self.assertLess(damage, 60)
+        self.assertGreater(damage, self.MIN_BASE_DAMAGE)
+        self.assertLess(damage, self.MAX_BASE_DAMAGE)
     
     def test_estimate_damage_with_stab(self):
         """Test STAB bonus (1.5x multiplier for same type).
@@ -64,7 +68,7 @@ class TestDamageEstimation(unittest.TestCase):
         
         # With STAB, damage should be significantly higher
         damage_with_stab = self.bot._estimate_damage(self.battle, attacker, move, defender)
-        self.assertGreater(damage_with_stab, 40)
+        self.assertGreater(damage_with_stab, self.MIN_STAB_DAMAGE)
     
     def test_estimate_damage_high_attack_stat(self):
         """Test damage scales with attacker's attack stat."""
@@ -133,11 +137,11 @@ class TestEstimatedKill(unittest.TestCase):
         self.assertFalse(is_kill)
 
 
-class TestHighestDamageComparison(unittest.TestCase):
-    """Tests for comparing damage between moves.
+class TestHighestDamageMove(unittest.TestCase):
+    """Tests for damage comparison and scaling.
     
-    Reference: AI_LOGIC.txt lines 23-32
-    Highest damage gets +6 (~80%) or +8 (~20%)
+    Validates that higher-power moves consistently deal more damage than lower-power moves.
+    Reference: AI_LOGIC.txt lines 23-32 (Highest damage scoring)
     """
 
     def setUp(self):

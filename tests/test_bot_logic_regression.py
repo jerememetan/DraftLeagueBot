@@ -6,10 +6,32 @@ from unittest.mock import patch
 from bot_logic import DoublesMvpBot
 from poke_env.battle.side_condition import SideCondition
 from mocks import DummyBattle
-from fixtures import make_pokemon, make_move
 
 
 class BotLogicRegressionTests(unittest.TestCase):
+    # Final Gambit scoring constants
+    FINAL_GAMBIT_HIGH_SCORE = 8
+    FINAL_GAMBIT_THREATENED_SCORE = 7
+    FINAL_GAMBIT_BASE_SCORE = 6
+    FINAL_GAMBIT_IMMUNE_PENALTY = -20
+    
+    # Memento scoring constants
+    MEMENTO_VERY_LOW_HP_SCORE = 16
+    MEMENTO_MID_HP_SCORE_LOW = 14
+    MEMENTO_MID_HP_SCORE_HIGH = 6
+    
+    # Destiny Bond scoring constants
+    DESTINY_BOND_THREATENED_SCORE = 7
+    DESTINY_BOND_BASE_SCORE = 5
+    
+    # Tailwind scoring constants
+    TAILWIND_SLOWER_SCORE = 9
+    TAILWIND_BLOCKED_PENALTY = -20
+    
+    # Trick Room scoring constants
+    TRICK_ROOM_SLOWER_SCORE = 10
+    TRICK_ROOM_BLOCKED_PENALTY = -20
+    
     def setUp(self):
         self.bot = DoublesMvpBot.__new__(DoublesMvpBot)
         self.bot._debug = False
@@ -55,7 +77,7 @@ class BotLogicRegressionTests(unittest.TestCase):
 
         score = self.bot._score_final_gambit(battle, attacker, move, target)
 
-        self.assertEqual(score, 8)
+        self.assertEqual(score, self.FINAL_GAMBIT_HIGH_SCORE)
 
     def test_final_gambit_scores_seven_when_faster_and_threatened(self):
         attacker = self.make_pokemon(name="attacker", hp=20, speed=120)
@@ -70,7 +92,7 @@ class BotLogicRegressionTests(unittest.TestCase):
 
         score = self.bot._score_final_gambit(battle, attacker, move, target)
 
-        self.assertEqual(score, 7)
+        self.assertEqual(score, self.FINAL_GAMBIT_THREATENED_SCORE)
 
     def test_final_gambit_scores_six_when_slower(self):
         attacker = self.make_pokemon(name="attacker", hp=80, speed=50)
@@ -80,7 +102,7 @@ class BotLogicRegressionTests(unittest.TestCase):
 
         score = self.bot._score_final_gambit(battle, attacker, move, target)
 
-        self.assertEqual(score, 6)
+        self.assertEqual(score, self.FINAL_GAMBIT_BASE_SCORE)
 
     def test_final_gambit_rejects_immune_targets(self):
         attacker = self.make_pokemon(name="attacker", hp=80, speed=120)
@@ -90,7 +112,7 @@ class BotLogicRegressionTests(unittest.TestCase):
 
         score = self.bot._score_final_gambit(battle, attacker, move, target)
 
-        self.assertEqual(score, -20)
+        self.assertEqual(score, self.FINAL_GAMBIT_IMMUNE_PENALTY)
 
     def test_memento_scores_high_when_very_low_hp(self):
         attacker = self.make_pokemon(name="attacker", hp=5, speed=100)
@@ -99,7 +121,7 @@ class BotLogicRegressionTests(unittest.TestCase):
 
         score = self.bot._score_memento(battle, attacker)
 
-        self.assertEqual(score, 16)
+        self.assertEqual(score, self.MEMENTO_VERY_LOW_HP_SCORE)
 
     def test_memento_uses_probabilistic_branches(self):
         attacker = self.make_pokemon(name="attacker", hp=25, speed=100)
@@ -107,10 +129,10 @@ class BotLogicRegressionTests(unittest.TestCase):
         battle = DummyBattle(active_pokemon=[attacker, partner], opponent_active_pokemon=[self.make_pokemon(name="foe", hp=100, speed=80)])
 
         with patch.object(random, "random", return_value=0.2):
-            self.assertEqual(self.bot._score_memento(battle, attacker), 14)
+            self.assertEqual(self.bot._score_memento(battle, attacker), self.MEMENTO_MID_HP_SCORE_LOW)
 
         with patch.object(random, "random", return_value=0.9):
-            self.assertEqual(self.bot._score_memento(battle, attacker), 6)
+            self.assertEqual(self.bot._score_memento(battle, attacker), self.MEMENTO_MID_HP_SCORE_HIGH)
 
     def test_destiny_bond_scores_higher_when_faster_and_threatened(self):
         attacker = self.make_pokemon(name="attacker", hp=20, speed=120)
@@ -125,7 +147,7 @@ class BotLogicRegressionTests(unittest.TestCase):
         with patch.object(random, "random", return_value=0.5):
             score = self.bot._score_destiny_bond(battle, attacker, target)
 
-        self.assertEqual(score, 7)
+        self.assertEqual(score, self.DESTINY_BOND_THREATENED_SCORE)
 
     def test_destiny_bond_scores_lower_when_slower(self):
         attacker = self.make_pokemon(name="attacker", hp=40, speed=80)
@@ -135,7 +157,7 @@ class BotLogicRegressionTests(unittest.TestCase):
         with patch.object(random, "random", return_value=0.1):
             score = self.bot._score_destiny_bond(battle, attacker, target)
 
-        self.assertEqual(score, 5)
+        self.assertEqual(score, self.DESTINY_BOND_BASE_SCORE)
 
     def test_tailwind_prefers_when_team_is_slower(self):
         ally1 = self.make_pokemon(name="ally1", speed=80)
@@ -144,7 +166,7 @@ class BotLogicRegressionTests(unittest.TestCase):
         foe2 = self.make_pokemon(name="foe2", speed=85)
         battle = DummyBattle(active_pokemon=[ally1, ally2], opponent_active_pokemon=[foe1, foe2], side_conditions={})
 
-        self.assertEqual(self.bot._score_tailwind(battle), 9)
+        self.assertEqual(self.bot._score_tailwind(battle), self.TAILWIND_SLOWER_SCORE)
 
     def test_tailwind_is_blocked_when_already_active(self):
         ally1 = self.make_pokemon(name="ally1", speed=60)
@@ -157,7 +179,7 @@ class BotLogicRegressionTests(unittest.TestCase):
             side_conditions={SideCondition.TAILWIND: True},
         )
 
-        self.assertEqual(self.bot._score_tailwind(battle), -20)
+        self.assertEqual(self.bot._score_tailwind(battle), self.TAILWIND_BLOCKED_PENALTY)
 
     def test_trick_room_scores_higher_when_team_is_slower(self):
         ally1 = self.make_pokemon(name="ally1", speed=80)
@@ -166,7 +188,7 @@ class BotLogicRegressionTests(unittest.TestCase):
         foe2 = self.make_pokemon(name="foe2", speed=70)
         battle = DummyBattle(active_pokemon=[ally1, ally2], opponent_active_pokemon=[foe1, foe2], trick_room=False)
 
-        self.assertEqual(self.bot._score_trick_room(battle), 10)
+        self.assertEqual(self.bot._score_trick_room(battle), self.TRICK_ROOM_SLOWER_SCORE)
 
     def test_trick_room_is_blocked_when_active(self):
         ally1 = self.make_pokemon(name="ally1", speed=60)
@@ -175,7 +197,7 @@ class BotLogicRegressionTests(unittest.TestCase):
         foe2 = self.make_pokemon(name="foe2", speed=90)
         battle = DummyBattle(active_pokemon=[ally1, ally2], opponent_active_pokemon=[foe1, foe2], trick_room=True)
 
-        self.assertEqual(self.bot._score_trick_room(battle), -20)
+        self.assertEqual(self.bot._score_trick_room(battle), self.TRICK_ROOM_BLOCKED_PENALTY)
 
 
 if __name__ == "__main__":

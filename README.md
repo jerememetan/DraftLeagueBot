@@ -31,6 +31,30 @@ Enable debug logs and use a specific team file when `--debug` is set:
 ".venv/Scripts/python.exe" test_bot.py --debug --team-file team5.txt
 ```
 
+### Battle Format
+The bot now prompts you to choose a battle format interactively at startup.
+Press Enter to use the default draft format, choose the Reg M-A profile, or enter a custom format id.
+
+You can still force a format non-interactively:
+
+```bash
+".venv/Scripts/python.exe" test_bot.py --format-profile draft
+".venv/Scripts/python.exe" test_bot.py --format-profile vgc-reg-ma
+".venv/Scripts/python.exe" test_bot.py --battle-format gen9vgc2026regma
+```
+
+Skip the prompt and use the resolved default format:
+
+```bash
+".venv/Scripts/python.exe" test_bot.py --no-format-prompt
+```
+
+List the built-in profiles:
+
+```bash
+".venv/Scripts/python.exe" test_bot.py --list-formats
+```
+
 ### Preflight Check
 Loads the team and exits (no battle):
 

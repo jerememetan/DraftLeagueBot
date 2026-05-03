@@ -8,6 +8,35 @@ from poke_env import AccountConfiguration, LocalhostServerConfiguration
 from bot_logic import DoublesMvpBot
 
 
+FORMAT_PROFILES = {
+    "draft": "gen94v4doublesdraft",
+    "vgc-reg-ma": "gen9championsvgc2026regma",
+}
+
+
+def prompt_for_battle_format():
+    """Prompt the user to pick a battle format profile interactively."""
+    options = list(FORMAT_PROFILES.items())
+    print("\nSelect Battle Format:")
+    for index, (profile_name, format_id) in enumerate(options, start=1):
+        print(f" {index}) {profile_name} -> {format_id}")
+    print(f" {len(options) + 1}) custom format id")
+
+    while True:
+        choice = input(f"Choose 1-{len(options) + 1} [1]: ").strip()
+        if choice == "" or choice == "1":
+            return FORMAT_PROFILES["draft"]
+        if choice.isdigit():
+            choice_index = int(choice)
+            if 1 <= choice_index <= len(options):
+                return options[choice_index - 1][1]
+            if choice_index == len(options) + 1:
+                custom_format = input("Enter custom battle format id: ").strip()
+                if custom_format:
+                    return custom_format
+        print("❌ Invalid format choice. Please try again.")
+
+
 def load_random_team_from_challenger(challenger_name, team_file=None):
     """Load a random team from a challenger's folder or a specific team file."""
     script_dir = Path(__file__).parent
@@ -63,6 +92,19 @@ def list_available_challengers():
     return challengers
 
 
+def resolve_battle_format(format_profile=None, battle_format=None):
+    """Resolve the Showdown battle format to use.
+
+    A named profile keeps the common doubles ladders easy to switch between, while
+    ``--battle-format`` lets you override with any custom Showdown format id.
+    """
+    if battle_format:
+        return battle_format
+    if format_profile:
+        return FORMAT_PROFILES.get(format_profile, format_profile)
+    return FORMAT_PROFILES["draft"]
+
+
 
 class SmartAggroBot(DoublesMvpBot):
     """Doubles MVP bot with custom scoring logic."""
@@ -73,9 +115,39 @@ async def main():
     parser.add_argument("--preflight", action="store_true", help="Run import/team checks only")
     parser.add_argument("--debug", action="store_true", help="Enable per-turn debug output")
     parser.add_argument("--team-file", help="Use a specific team file (name or full path)")
+    parser.add_argument(
+        "--format-profile",
+        choices=sorted(FORMAT_PROFILES),
+        default="draft",
+        help="Named doubles format preset to use",
+    )
+    parser.add_argument(
+        "--battle-format",
+        help="Override the Showdown battle format id directly",
+    )
+    parser.add_argument(
+        "--list-formats",
+        action="store_true",
+        help="Print supported format profiles and exit",
+    )
+    parser.add_argument(
+        "--no-format-prompt",
+        action="store_true",
+        help="Skip the interactive format picker and use the resolved default",
+    )
     args = parser.parse_args()
 
+    if args.list_formats:
+        print("Supported format profiles:")
+        for profile_name, format_id in FORMAT_PROFILES.items():
+            print(f" - {profile_name}: {format_id}")
+        return
+
     bot_account = AccountConfiguration("Bot_Opponent", None)
+    resolved_battle_format = resolve_battle_format(args.format_profile, args.battle_format)
+
+    if not args.battle_format and not args.no_format_prompt:
+        resolved_battle_format = prompt_for_battle_format()
     
     available = list_available_challengers()
     
@@ -104,7 +176,7 @@ async def main():
             print(f"❌ '{selected_trainer}' not found. Please try again.")
 
     if args.preflight:
-        print("✅ Preflight OK: team loaded and bot can be instantiated.")
+        print(f"✅ Preflight OK: team loaded and bot can be instantiated with '{resolved_battle_format}'.")
         return
     
     # Create bot
@@ -112,14 +184,14 @@ async def main():
         account_configuration=bot_account,
         server_configuration=LocalhostServerConfiguration,
         team=selected_team,
-        battle_format="gen94v4doublesdraft",
+        battle_format=resolved_battle_format,
         debug=args.debug,
         debug_turns=55
     )
     if args.debug:
-        print("✅ Bot Ready. Debugging enabled.")
+        print(f"✅ Bot Ready. Debugging enabled. Battle format: {resolved_battle_format}")
     else:
-        print("✅ Bot Ready.")
+        print(f"✅ Bot Ready. Battle format: {resolved_battle_format}")
     await bot.accept_challenges(None, 5)
 
 
