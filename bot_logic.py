@@ -149,8 +149,11 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 					score += 1
 
 			if self._is_high_crit(move) and self._is_super_effective(battle, move, target):
-				score += self._rng_weight(1, 0, 0.5)
-
+				score += self._rng_weight(3, 5, 0.3)
+			if self._is_super_effective(battle, move, target):
+				score += self._rng_weight(2, 4, 0.3)
+			if self._is_not_very_effective(battle,move, target):
+				score -= 2
 			if move.priority > 0 and self._is_threatened_by_any_faster_opponent(battle, attacker):
 				score += 11
 
@@ -1677,7 +1680,14 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 			except Exception:
 				multiplier = 1.0
 		return multiplier > 1.0
-
+	def _is_not_very_effective(self, battle, move, target):
+		multiplier = 1.0
+		if hasattr(battle, "damage_multiplier"):
+			try:
+				multiplier = battle.damage_multiplier(move, target)
+			except Exception:
+				multiplier = 1.0
+		return multiplier < 1.0
 	def _is_super_effective_on_target(self, move, target):
 		try:
 			return target.damage_multiplier(move) > 1.0
