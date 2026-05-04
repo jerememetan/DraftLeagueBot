@@ -41,23 +41,20 @@ def load_random_team_from_challenger(challenger_name, team_file=None):
     """Load a random team from a challenger's folder or a specific team file."""
     script_dir = Path(__file__).parent / "Trainers"
     challenger_folder = script_dir / challenger_name
-    
     if not challenger_folder.exists():
         print(f"❌ Challenger folder '{challenger_name}' does not exist!")
         return None
-    
-    if team_file:
+    requested_team_file = team_file
+    if requested_team_file:
         candidate = Path(team_file)
         if not candidate.is_file():
             candidate = challenger_folder / team_file
         team_files = [candidate] if candidate.is_file() else []
     else:
         team_files = list(challenger_folder.glob("*.txt"))
-    
     if not team_files:
         print(f"❌ No .txt team files found in '{challenger_name}' folder")
         return None
-    
     valid_teams = []
     for team_file in team_files:
         try:
@@ -69,18 +66,14 @@ def load_random_team_from_challenger(challenger_name, team_file=None):
                     print(f"  ⚠️ Skipped empty file: {team_file.name}")
         except Exception as e:
             print(f"  ❌ Error reading {team_file.name}: {e}")
-    
     if not valid_teams:
         print(f"❌ No valid teams found in '{challenger_name}' folder")
         return None
-    
-    if team_file:
-        selected_file, selected_team = valid_teams[0]
-        print(f"  ✅ Selected team: {selected_file} from {challenger_name}")
+    if requested_team_file:
+        selected_file, selected_team = valid_teams[0]    
     else:
         selected_file, selected_team = random.choice(valid_teams)
-        print(f"  ✅ Selected team: {selected_file} from {challenger_name}")
-    
+    print(f"  ✅ Selected team: {selected_file} from {challenger_name}")
     return selected_team
 
 
