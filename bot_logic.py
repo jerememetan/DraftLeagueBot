@@ -1,5 +1,5 @@
 import random
-from typing import List, Optional, Tuple
+from typing import Any, List, Optional, Tuple
 
 from poke_env.player import MaxBasePowerPlayer
 from poke_env.battle.double_battle import DoubleBattle
@@ -46,7 +46,7 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 					orders.append(order)
 				continue
 
-			scored: List[Tuple[float, object, Optional[object]]] = []
+			scored: List[Tuple[float, Any, Optional[Any]]] = []
 			for move in moves:
 				if not hasattr(move, "id"):
 					continue
