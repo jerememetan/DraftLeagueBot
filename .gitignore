@@ -1,3 +1,5 @@
 # Ignore team folders except TESTER
 /Trainers/*/
 !TESTER/
+__pycache__/
+*.py[cod]

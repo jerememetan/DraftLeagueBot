@@ -37,7 +37,7 @@
 **Files:**
 - Create: `tests/test_import_contract.py`
 
-- [ ] **Step 1: Write the failing import contract test**
+- [x] **Step 1: Write the failing import contract test**
 
 ```python
 def test_legacy_bot_logic_import_matches_package_export():
@@ -49,7 +49,7 @@ def test_legacy_bot_logic_import_matches_package_export():
     assert PackageBot is ModuleBot
 ```
 
-- [ ] **Step 2: Run the test to verify it fails before the package exists**
+- [x] **Step 2: Run the test to verify it fails before the package exists**
 
 Run:
 
@@ -59,7 +59,7 @@ Run:
 
 Expected: FAIL with `ModuleNotFoundError: No module named 'draftleaguebot'`.
 
-- [ ] **Step 3: Create the package skeleton**
+- [x] **Step 3: Create the package skeleton**
 
 Create `draftleaguebot/__init__.py`:
 
@@ -77,7 +77,7 @@ from bot_logic import DoublesMvpBot
 __all__ = ["DoublesMvpBot"]
 ```
 
-- [ ] **Step 4: Run the import contract test**
+- [x] **Step 4: Run the import contract test**
 
 Run:
 
@@ -87,7 +87,7 @@ Run:
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```powershell
 git add draftleaguebot tests/test_import_contract.py
