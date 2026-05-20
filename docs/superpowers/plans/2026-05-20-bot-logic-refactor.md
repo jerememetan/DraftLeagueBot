@@ -99,7 +99,7 @@ git commit -m "test: add bot import contract"
 **Files:**
 - Create: `tests/test_file_size_limits.py`
 
-- [ ] **Step 1: Write the failing file-size test**
+- [x] **Step 1: Write the failing file-size test**
 
 ```python
 from pathlib import Path
@@ -127,7 +127,7 @@ def test_project_python_files_stay_under_300_lines():
     assert oversized == []
 ```
 
-- [ ] **Step 2: Run the test to verify it catches `bot_logic.py`**
+- [x] **Step 2: Run the test to verify it catches `bot_logic.py`**
 
 Run:
 
@@ -137,7 +137,7 @@ Run:
 
 Expected: FAIL and list `bot_logic.py` as oversized.
 
-- [ ] **Step 3: Commit the guardrail test**
+- [x] **Step 3: Commit the guardrail test**
 
 ```powershell
 git add tests/test_file_size_limits.py
