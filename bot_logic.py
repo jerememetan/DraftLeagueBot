@@ -105,34 +105,19 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 		return DoubleBattleOrder(first_order=orders[0], second_order=PassBattleOrder())
 
 	def _should_debug(self, battle):
-		if not self._debug:
-			return False
-		turn = getattr(battle, "turn", None)
-		if turn is None:
-			return True
-		return turn <= self._debug_turns
+		from draftleaguebot import debug as debug_helpers
+
+		return debug_helpers.should_debug(self._debug, self._debug_turns, battle)
 
 	def _log_decision(self, battle, slot_index, attacker, scored, best_move, best_target):
-		turn = getattr(battle, "turn", "?")
-		attacker_name = getattr(attacker, "name", "?")
-		
-		# Sort by score descending and show top 3 candidates
-		sorted_scored = sorted(scored, key=lambda x: x[0], reverse=True)
-		top_moves = sorted_scored[:3]
-		
-		top_str = " | ".join(
-			f"{getattr(m, 'id', '?')}→{getattr(t, 'name', '?')} ({s:.2f})"
-			for s, m, t in top_moves
-		)
-		
-		print(
-			f"[AI DEBUG] turn={turn} slot={slot_index} attacker={attacker_name} "
-			f"top_candidates=[{top_str}]"
-		)
+		from draftleaguebot import debug as debug_helpers
+
+		debug_helpers.log_decision(battle, slot_index, attacker, scored)
 
 	def _log_final_orders(self, orders):
-		messages = [order.message for order in orders]
-		print(f"[AI DEBUG] final_orders={messages}")
+		from draftleaguebot import debug as debug_helpers
+
+		debug_helpers.log_final_orders(orders)
 
 	def _score_move(self, battle, attacker, move, target, opponents, attacker_moves):
 		score = 0.0

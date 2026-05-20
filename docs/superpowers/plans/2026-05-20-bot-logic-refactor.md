@@ -150,7 +150,7 @@ git commit -m "test: enforce python file size limit"
 - Create: `draftleaguebot/debug.py`
 - Modify: `bot_logic.py`
 
-- [ ] **Step 1: Create debug helper functions**
+- [x] **Step 1: Create debug helper functions**
 
 Create `draftleaguebot/debug.py`:
 
@@ -184,7 +184,7 @@ def log_final_orders(orders):
     print(f"[AI DEBUG] final_orders={messages}")
 ```
 
-- [ ] **Step 2: Update `bot_logic.py` debug methods to delegate**
+- [x] **Step 2: Update `bot_logic.py` debug methods to delegate**
 
 Replace `_should_debug`, `_log_decision`, and `_log_final_orders` bodies with:
 
@@ -204,7 +204,7 @@ def _log_final_orders(self, orders):
     debug_helpers.log_final_orders(orders)
 ```
 
-- [ ] **Step 3: Run focused tests**
+- [x] **Step 3: Run focused tests**
 
 Run:
 
@@ -214,7 +214,7 @@ Run:
 
 Expected: PASS.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```powershell
 git add bot_logic.py draftleaguebot/debug.py
