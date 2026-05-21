@@ -1,6 +1,5 @@
 import random
 from typing import Any, List, Optional, Tuple
-
 from poke_env.player import MaxBasePowerPlayer
 from poke_env.battle.double_battle import DoubleBattle
 from poke_env.battle.effect import Effect
@@ -422,59 +421,26 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 		return count
 
 	def _move_target_position(self, battle, attacker, move, target):
-		move_target = getattr(move, "deduced_target", None) or getattr(move, "target", None)
-		if move_target is None:
-			return DoubleBattle.EMPTY_TARGET_POSITION
-		if not isinstance(move_target, Target):
-			return DoubleBattle.EMPTY_TARGET_POSITION
+		from draftleaguebot import orders
 
-		if move_target in {
-			Target.SELF,
-			Target.ALLY_SIDE,
-			Target.ALLIES,
-			Target.FOE_SIDE,
-			Target.ALL,
-			Target.ALL_ADJACENT,
-			Target.ALL_ADJACENT_FOES,
-			Target.RANDOM_NORMAL,
-			Target.SCRIPTED,
-		}:
-			return DoubleBattle.EMPTY_TARGET_POSITION
-
-		if move_target in {Target.NORMAL, Target.ANY, Target.ADJACENT_FOE}:
-			if self._is_partner(battle, attacker, target) and self._ally_target_allowed(move):
-				self_pos, ally_pos = self._ally_positions(battle, attacker)
-				return ally_pos if ally_pos is not None else self_pos
-			position = self._opponent_position(battle, target)
-			return position if position is not None else DoubleBattle.EMPTY_TARGET_POSITION
-
-		if move_target in {Target.ADJACENT_ALLY, Target.ADJACENT_ALLY_OR_SELF}:
-			self_pos, ally_pos = self._ally_positions(battle, attacker)
-			if move_target == Target.ADJACENT_ALLY:
-				return ally_pos if ally_pos is not None else DoubleBattle.EMPTY_TARGET_POSITION
-			return ally_pos if ally_pos is not None else self_pos
-
-		if move_target == Target.SELF:
-			self_pos, _ = self._ally_positions(battle, attacker)
-			return self_pos if self_pos is not None else DoubleBattle.EMPTY_TARGET_POSITION
-
-		return DoubleBattle.EMPTY_TARGET_POSITION
+		return orders.move_target_position(
+			battle,
+			attacker,
+			move,
+			target,
+			ally_target_allowed=self._ally_target_allowed,
+			is_partner=self._is_partner,
+		)
 
 	def _opponent_position(self, battle, target):
-		for index, foe in enumerate(battle.opponent_active_pokemon):
-			if foe is target:
-				return DoubleBattle.OPPONENT_1_POSITION if index == 0 else DoubleBattle.OPPONENT_2_POSITION
-		return None
+		from draftleaguebot import orders
+
+		return orders.opponent_position(battle, target)
 
 	def _ally_positions(self, battle, attacker):
-		active = battle.active_pokemon
-		if not isinstance(active, list):
-			return DoubleBattle.POKEMON_1_POSITION, None
-		if len(active) >= 1 and active[0] is attacker:
-			return DoubleBattle.POKEMON_1_POSITION, DoubleBattle.POKEMON_2_POSITION
-		if len(active) >= 2 and active[1] is attacker:
-			return DoubleBattle.POKEMON_2_POSITION, DoubleBattle.POKEMON_1_POSITION
-		return DoubleBattle.POKEMON_1_POSITION, None
+		from draftleaguebot import orders
+
+		return orders.ally_positions(battle, attacker)
 
 	def _score_status_move(self, battle, attacker, move, target, opponents):
 		move_id = getattr(move, "id", None)
@@ -1850,29 +1816,14 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 		return False
 
 	def _get_active_slots(self, battle):
-		available = battle.available_moves
-		active = battle.active_pokemon
-		if isinstance(available, list) and available and isinstance(available[0], list):
-			slots = []
-			if isinstance(active, list):
-				for index, moves in enumerate(available):
-					attacker = active[index] if index < len(active) else None
-					if attacker is None:
-						continue
-					slots.append((index, attacker, moves))
-			else:
-				slots.append((0, active, available[0]))
-			return slots
-		return [(0, active, available)]
+		from draftleaguebot import orders
+
+		return orders.get_active_slots(battle)
 
 	def _fallback_order_for_slot(self, battle, slot_index):
-		available_switches = getattr(battle, "available_switches", None)
-		if isinstance(available_switches, list):
-			if slot_index < len(available_switches) and available_switches[slot_index]:
-				return self.create_order(random.choice(available_switches[slot_index]))
-		elif available_switches:
-			return self.create_order(random.choice(available_switches))
-		return None
+		from draftleaguebot import orders
+
+		return orders.fallback_order_for_slot(self.create_order, battle, slot_index)
 
 	def _get_offense_defense_stats(self, attacker, target, move):
 		category = move.category.name.lower()

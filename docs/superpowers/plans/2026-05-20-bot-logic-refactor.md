@@ -227,7 +227,7 @@ git commit -m "refactor: extract bot debug helpers"
 - Create: `draftleaguebot/orders.py`
 - Modify: `bot_logic.py`
 
-- [ ] **Step 1: Move order and slot helpers into `orders.py`**
+- [x] **Step 1: Move order and slot helpers into `orders.py`**
 
 Create functions equivalent to these current methods:
 
@@ -241,7 +241,7 @@ ally_positions(battle, attacker)
 
 Keep all `DoubleBattle` and `Target` imports inside `draftleaguebot/orders.py`.
 
-- [ ] **Step 2: Replace methods in `bot_logic.py` with wrappers**
+- [x] **Step 2: Replace methods in `bot_logic.py` with wrappers**
 
 ```python
 from draftleaguebot import orders
@@ -266,7 +266,7 @@ def _move_target_position(self, battle, attacker, move, target):
     )
 ```
 
-- [ ] **Step 3: Run existing tests**
+- [x] **Step 3: Run existing tests**
 
 Run:
 

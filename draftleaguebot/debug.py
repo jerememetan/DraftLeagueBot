@@ -1,3 +1,4 @@
+# defines whether it should show any debugs
 def should_debug(enabled, debug_turns, battle):
     if not enabled:
         return False
@@ -6,7 +7,7 @@ def should_debug(enabled, debug_turns, battle):
         return True
     return turn <= debug_turns
 
-
+# logger for moves calculated and shows scoring of moves
 def log_decision(battle, slot_index, attacker, scored):
     turn = getattr(battle, "turn", "?")
     attacker_name = getattr(attacker, "name", "?")
@@ -21,7 +22,7 @@ def log_decision(battle, slot_index, attacker, scored):
         f"top_candidates=[{top_str}]"
     )
 
-
+# logger for final move selected
 def log_final_orders(orders):
     messages = [order.message for order in orders]
     print(f"[AI DEBUG] final_orders={messages}")
