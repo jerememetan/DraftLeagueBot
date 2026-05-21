@@ -1247,14 +1247,9 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 		return self._has_hex_move(partner)
 
 	def _get_partner(self, battle, attacker):
-		active = battle.active_pokemon
-		if not isinstance(active, list):
-			return None
-		if len(active) >= 1 and active[0] is attacker:
-			return active[1] if len(active) > 1 else None
-		if len(active) >= 2 and active[1] is attacker:
-			return active[0]
-		return None
+		from draftleaguebot.mechanics import targets
+
+		return targets.get_partner(battle, attacker)
 
 	def _apply_doubles_damage_bonuses(self, battle, attacker, move, target):
 		move_id = getattr(move, "id", None)
@@ -1365,62 +1360,41 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 		return 9
 
 	def _candidate_targets(self, battle, attacker, move, opponents):
-		move_target = getattr(move, "deduced_target", None) or getattr(move, "target", None)
-		if not isinstance(move_target, Target):
-			return list(opponents)
-		if self._move_targets_self_or_side(move_target, move):
-			return [attacker]
-		targets = []
-		if self._move_allows_foe(move_target):
-			targets.extend(list(opponents))
-		if self._move_allows_ally(move_target, move):
-			partner = self._get_partner(battle, attacker)
-			if partner is not None:
-				targets.append(partner)
-		return targets
+		from draftleaguebot.mechanics import targets
+		return targets.candidate_targets(
+			battle,
+			attacker,
+			move,
+			opponents,
+			setup_move_ids=self._setup_move_ids(),
+		)
 
 	def _move_allows_foe(self, move_target):
-		return move_target in {Target.NORMAL, Target.ADJACENT_FOE, Target.ANY, Target.ALL_ADJACENT_FOES}
+		from draftleaguebot.mechanics import targets
+		return targets.move_allows_foe(move_target)
 
 	def _move_allows_ally(self, move_target, move):
-		if move_target in {Target.ADJACENT_ALLY, Target.ADJACENT_ALLY_OR_SELF, Target.SELF}:
-			return True
-		if move_target == Target.ANY:
-			return self._ally_target_allowed(move)
-		return False
+		from draftleaguebot.mechanics import targets
+
+		return targets.move_allows_ally(move_target, move)
 
 	def _ally_target_allowed(self, move):
-		move_id = getattr(move, "id", None)
-		return move_id in {
-			"shadowsneak",
-			"aquajet",
-			"iceshard",
-			"vacuumwave",
-			"bulletpunch",
-			"machpunch",
-			"watershuriken",
-			"fling",
-		}
+		from draftleaguebot.mechanics import targets
+		return targets.ally_target_allowed(move)
 
 	def _move_targets_self_or_side(self, move_target, move):
-		if move_target in {
-			Target.SELF,
-			Target.ALLY_SIDE,
-			Target.ALLIES,
-			Target.FOE_SIDE,
-			Target.ALL,
-			Target.ALL_ADJACENT,
-			Target.ALL_ADJACENT_FOES,
-			Target.RANDOM_NORMAL,
-			Target.SCRIPTED,
-		}:
-			return True
-		move_id = getattr(move, "id", None)
-		return move_id in self._setup_move_ids()
+		from draftleaguebot.mechanics import targets
+
+		return targets.move_targets_self_or_side(
+			move_target,
+			move,
+			setup_move_ids=self._setup_move_ids(),
+		)
 
 	def _is_partner(self, battle, attacker, target):
-		partner = self._get_partner(battle, attacker)
-		return partner is not None and target is partner
+		from draftleaguebot.mechanics import targets
+
+		return targets.is_partner(battle, attacker, target)
 
 	def _earthquake_partner_bonus(self, battle):
 		attacker = None

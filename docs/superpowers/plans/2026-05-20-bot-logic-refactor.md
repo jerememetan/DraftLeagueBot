@@ -276,7 +276,7 @@ Run:
 
 Expected: PASS except `tests/test_file_size_limits.py`, which is allowed to fail until the final shim task.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```powershell
 git add bot_logic.py draftleaguebot/orders.py
@@ -290,7 +290,7 @@ git commit -m "refactor: extract double battle order helpers"
 - Create: `draftleaguebot/mechanics/targets.py`
 - Modify: `bot_logic.py`
 
-- [ ] **Step 1: Move target helper functions**
+- [x] **Step 1: Move target helper functions**
 
 Move these methods to `draftleaguebot/mechanics/targets.py` as plain functions:
 
@@ -306,7 +306,7 @@ get_partner(battle, attacker)
 
 Pass `setup_move_ids` into `move_targets_self_or_side` if the function needs the setup move set.
 
-- [ ] **Step 2: Add wrapper methods in `bot_logic.py`**
+- [] **Step 2: Add wrapper methods in `bot_logic.py`**
 
 Keep method names stable and delegate to `targets.py`:
 
@@ -324,7 +324,7 @@ def _candidate_targets(self, battle, attacker, move, opponents):
     )
 ```
 
-- [ ] **Step 3: Run tests**
+- [x] **Step 3: Run tests**
 
 Run:
 
@@ -334,7 +334,7 @@ Run:
 
 Expected: PASS except the known file-size failure.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```powershell
 git add bot_logic.py draftleaguebot/mechanics
