@@ -371,7 +371,7 @@ opponent_has_multiple_alive(battle)
 
 Each original method should delegate to `pokemon_state.py` so existing scoring methods keep working during the incremental extraction.
 
-- [ ] **Step 3: Run tests**
+- [x] **Step 3: Run tests**
 
 Run:
 
@@ -381,7 +381,7 @@ Run:
 
 Expected: PASS except the known file-size failure.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```powershell
 git add bot_logic.py draftleaguebot/mechanics/pokemon_state.py
