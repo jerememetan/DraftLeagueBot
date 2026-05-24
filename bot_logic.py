@@ -374,51 +374,33 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 		return 7 if random.random() < 0.05 else 0
 
 	def _is_last_mon(self, battle):
-		ally_alive, _ = self._alive_counts(battle)
-		return ally_alive <= 1
+		from draftleaguebot.mechanics import pokemon_state
+
+		return pokemon_state.is_last_mon(battle)
 
 	def _both_last_mon(self, battle):
-		ally_alive, opp_alive = self._alive_counts(battle)
-		return ally_alive <= 1 and opp_alive <= 1
+		from draftleaguebot.mechanics import pokemon_state
+
+		return pokemon_state.both_last_mon(battle)
 
 	def _opponent_has_multiple_alive(self, battle):
-		_, opp_alive = self._alive_counts(battle)
-		return opp_alive > 1
+		from draftleaguebot.mechanics import pokemon_state
+		return pokemon_state.opponent_has_multiple_alive(battle)
 
 	def _alive_counts(self, battle):
-		ally = self._count_alive(getattr(battle, "team", None))
-		opp = self._count_alive(getattr(battle, "opponent_team", None))
-		if ally == 0:
-			ally = self._count_alive(self._active_list(battle.active_pokemon))
-		if opp == 0:
-			opp = self._count_alive(self._active_list(battle.opponent_active_pokemon))
-		return ally, opp
+		from draftleaguebot.mechanics import pokemon_state
+
+		return pokemon_state.alive_counts(battle)
 
 	def _active_list(self, active):
-		if isinstance(active, list):
-			return active
-		if active is None:
-			return []
-		return [active]
+		from draftleaguebot.mechanics import pokemon_state
+
+		return pokemon_state.active_list(active)
 
 	def _count_alive(self, team):
-		if not team:
-			return 0
-		pokemon_list = list(team.values()) if isinstance(team, dict) else list(team)
-		count = 0
-		for pokemon in pokemon_list:
-			if pokemon is None:
-				continue
-			if getattr(pokemon, "fainted", False):
-				continue
-			current_hp = getattr(pokemon, "current_hp", None)
-			if current_hp is not None and current_hp <= 0:
-				continue
-			current_frac = getattr(pokemon, "current_hp_fraction", None)
-			if current_frac is not None and current_frac <= 0:
-				continue
-			count += 1
-		return count
+		from draftleaguebot.mechanics import pokemon_state
+
+		return pokemon_state.count_alive(team)
 
 	def _move_target_position(self, battle, attacker, move, target):
 		from draftleaguebot import orders
@@ -583,11 +565,9 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 		return Effect.SUBSTITUTE in effects
 
 	def _has_positive_boost(self, pokemon):
-		try:
-			boosts = pokemon.boosts
-		except Exception:
-			return False
-		return any(value > 0 for value in boosts.values())
+		from draftleaguebot.mechanics import pokemon_state
+
+		return pokemon_state.has_positive_boost(pokemon)
 
 	def _score_protect(self, attacker, target):
 		score = 6
@@ -1010,10 +990,9 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 		return False
 
 	def _get_boost(self, pokemon, stat):
-		try:
-			return pokemon.boosts.get(stat, 0)
-		except Exception:
-			return 0
+		from draftleaguebot.mechanics import pokemon_state
+
+		return pokemon_state.get_boost(pokemon, stat)
 
 	def _is_incapacitated(self, target):
 		if target is None:
@@ -1585,10 +1564,9 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 		return damage >= current_hp
 
 	def _is_faster(self, attacker, defender):
-		try:
-			return attacker.stats["spe"] > defender.stats["spe"]
-		except Exception:
-			return False
+		from draftleaguebot.mechanics import pokemon_state
+
+		return pokemon_state.is_faster(attacker, defender)
 
 	def _team_is_slower(self, battle):
 		allies = [p for p in battle.active_pokemon if p is not None]
@@ -1702,18 +1680,9 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 		return False
 
 	def _safe_speed(self, pokemon):
-		try:
-			speed = pokemon.stats.get("spe", 0)
-			if speed is None or speed == 0:
-				base_stats = getattr(pokemon, "base_stats", None)
-				if isinstance(base_stats, dict):
-					base_speed = base_stats.get("spe", 0)
-					if base_speed is None or base_speed == 0:
-						return 0
-					return int(round(base_speed * 1.4))
-			return speed
-		except Exception:
-			return 0
+		from draftleaguebot.mechanics import pokemon_state
+
+		return pokemon_state.safe_speed(pokemon)
 
 	def _is_high_crit(self, move):
 		return getattr(move, "crit_ratio", 0) > 1
@@ -1808,23 +1777,9 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 		return 1, 1
 
 	def _stat(self, pokemon, key):
-		try:
-			if pokemon.stats and key in pokemon.stats:
-				return max(1, int(pokemon.stats[key]))
-		except Exception:
-			pass
-		# Fallback: use base stat from Pokédex if actual stats unavailable
-		try:
-			species = getattr(pokemon, "species", None)
-			if species:
-				gen_data = GenData.from_gen(9)  # Gen 9 (Scarlet/Violet)
-				pokemon_data = gen_data.pokedex.get(species.lower())
-				if pokemon_data and "baseStats" in pokemon_data:
-					base_stat = pokemon_data["baseStats"].get(key, 1)
-					return max(1, int(base_stat))
-		except Exception:
-			pass
-		return 1
+		from draftleaguebot.mechanics import pokemon_state
+
+		return pokemon_state.stat(pokemon, key)
 
 	def _has_stab(self, attacker, move):
 		move_type = getattr(move, "type", None)
@@ -1839,24 +1794,14 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 		return random.uniform(0.85, 1.0)
 
 	def _get_target_current_hp(self, target):
-		current_hp = getattr(target, "current_hp", None)
-		if current_hp is not None:
-			return current_hp
-		current_hp_fraction = getattr(target, "current_hp_fraction", None)
-		max_hp = self._get_target_max_hp(target)
-		if current_hp_fraction is None or max_hp is None:
-			return None
-		return max_hp * current_hp_fraction
+		from draftleaguebot.mechanics import pokemon_state
+
+		return pokemon_state.get_target_current_hp(target)
 
 	def _get_target_max_hp(self, target):
-		max_hp = getattr(target, "max_hp", None)
-		if max_hp is not None:
-			return max_hp
-		current_hp = getattr(target, "current_hp", None)
-		current_hp_fraction = getattr(target, "current_hp_fraction", None)
-		if current_hp is None or current_hp_fraction in (None, 0):
-			return None
-		return current_hp / current_hp_fraction
+		from draftleaguebot.mechanics import pokemon_state
+
+		return pokemon_state.get_target_max_hp(target)
 
 	def _rng_weight(self, low, high, low_prob):
 		return low if random.random() < low_prob else high

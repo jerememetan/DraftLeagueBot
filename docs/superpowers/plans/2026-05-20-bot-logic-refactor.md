@@ -347,7 +347,7 @@ git commit -m "refactor: extract targeting mechanics"
 - Create: `draftleaguebot/mechanics/pokemon_state.py`
 - Modify: `bot_logic.py`
 
-- [ ] **Step 1: Move state helper functions**
+- [x] **Step 1: Move state helper functions**
 
 Move HP, speed, boost, stat, and alive-count helpers to `pokemon_state.py`:
 
@@ -367,7 +367,7 @@ both_last_mon(battle)
 opponent_has_multiple_alive(battle)
 ```
 
-- [ ] **Step 2: Keep wrappers in `bot_logic.py`**
+- [x] **Step 2: Keep wrappers in `bot_logic.py`**
 
 Each original method should delegate to `pokemon_state.py` so existing scoring methods keep working during the incremental extraction.
 
