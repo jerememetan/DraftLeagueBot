@@ -419,7 +419,7 @@ is_trick_room_active(battle)
 
 Delegate each original method to `effects.py`.
 
-- [ ] **Step 3: Run tests**
+- [x] **Step 3: Run tests**
 
 Run:
 
@@ -429,7 +429,7 @@ Run:
 
 Expected: PASS except the known file-size failure.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```powershell
 git add bot_logic.py draftleaguebot/mechanics/effects.py
