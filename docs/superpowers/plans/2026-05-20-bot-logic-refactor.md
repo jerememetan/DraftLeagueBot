@@ -394,7 +394,7 @@ git commit -m "refactor: extract pokemon state helpers"
 - Create: `draftleaguebot/mechanics/effects.py`
 - Modify: `bot_logic.py`
 
-- [ ] **Step 1: Move battle effect helpers**
+- [x] **Step 1: Move battle effect helpers**
 
 Move weather, condition, type, immunity, and move category helpers to `effects.py`, including:
 
@@ -415,7 +415,7 @@ ally_side_condition_active(battle, condition)
 is_trick_room_active(battle)
 ```
 
-- [ ] **Step 2: Keep wrappers in `bot_logic.py`**
+- [x] **Step 2: Keep wrappers in `bot_logic.py`**
 
 Delegate each original method to `effects.py`.
 
