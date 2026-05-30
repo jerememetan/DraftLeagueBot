@@ -3,6 +3,7 @@ from types import SimpleNamespace
 from poke_env.battle.side_condition import SideCondition
 from poke_env.battle.weather import Weather
 
+from bot_logic import DoublesMvpBot
 from draftleaguebot.mechanics import effects
 
 
@@ -38,6 +39,12 @@ def test_weather_helpers_detect_sun_rain_snow_and_sand():
     assert effects.is_rain_active(SimpleNamespace(weather={Weather.RAINDANCE: 1})) is True
     assert effects.is_snow_active(SimpleNamespace(weather={Weather.SNOWSCAPE: 1})) is True
     assert effects.is_sand_active(SimpleNamespace(weather={Weather.SANDSTORM: 1})) is True
+
+
+def test_bot_weather_wrappers_delegate_to_effect_helpers():
+    bot = DoublesMvpBot.__new__(DoublesMvpBot)
+
+    assert bot._is_sand_active(SimpleNamespace(weather={Weather.SANDSTORM: 1})) is True
 
 
 def test_side_condition_helpers_check_correct_sides():

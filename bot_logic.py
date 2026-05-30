@@ -733,6 +733,11 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 
 		return effects.is_rain_active(battle)
 
+	def _is_sand_active(self, battle):
+		from draftleaguebot.mechanics import effects
+
+		return effects.is_sand_active(battle)
+
 	def _should_recover(self, battle, attacker, weather_boost=False, rest=False):
 		hp_frac = getattr(attacker, "current_hp_fraction", 0)
 		if getattr(attacker, "status", None) == Status.TOX:
