@@ -8,7 +8,6 @@ SELF_OR_SIDE_TARGETS = {
     Target.FOE_SIDE,
     Target.ALL,
     Target.ALL_ADJACENT,
-    Target.ALL_ADJACENT_FOES,
     Target.RANDOM_NORMAL,
     Target.SCRIPTED,
 }
