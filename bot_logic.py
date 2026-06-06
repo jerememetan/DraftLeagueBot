@@ -666,209 +666,104 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 		return item in {"lumberry", "chestoberry"}
 
 	def _score_setup_move(self, battle, attacker, target, move):
-		if self._threatened_by_ko(battle, attacker, target):
-			return -20
-		if self._target_has_unaware(target) and move.id not in {"poweruppunch", "swordsdance", "howl"}:
-			return -20
+		from draftleaguebot.scoring import setup
 
-		synergy_bonus = self._setup_synergy_bonus(attacker, move)
-
-		if self._is_special_setup(move):
-			return self._score_special_setup(attacker, target) + synergy_bonus
-		if self._is_defensive_setup(move):
-			boosts_both = move.id in {"cosmicpower", "stockpile"}
-			return self._score_defensive_setup(attacker, target, boosts_both=boosts_both) + synergy_bonus
-		if self._is_mixed_setup(move):
-			return self._score_mixed_setup(attacker, target, move) + synergy_bonus
-		if self._is_speed_setup(move):
-			return self._score_speed_setup(attacker, target) + synergy_bonus
-		if move.id in {"shellsmash"}:
-			return self._score_shell_smash(battle, attacker, target) + synergy_bonus
-		if move.id in {"bellydrum"}:
-			return self._score_belly_drum(battle, attacker, target) + synergy_bonus
-		return self._score_offensive_setup(attacker, target) + synergy_bonus
+		return setup.score_setup_move(self, battle, attacker, target, move)
 
 	def _score_offensive_setup(self, attacker, target):
-		score = 6
-		if self._is_incapacitated(target):
-			score += 3
-		if not self._is_faster(attacker, target) and self._is_two_hko_threat(attacker, target):
-			score -= 5
-		return score
+		from draftleaguebot.scoring import setup
+
+		return setup.score_offensive_setup(self, attacker, target)
 
 	def _score_defensive_setup(self, attacker, target, boosts_both=False):
-		score = 6
-		if not self._is_faster(attacker, target) and self._is_two_hko_threat(attacker, target):
-			score -= 5
-		if random.random() < 0.95:
-			if self._is_incapacitated(target):
-				score += 2
-			if boosts_both and (self._get_boost(attacker, "def") < 2 or self._get_boost(attacker, "spd") < 2):
-				score += 2
-		return score
+		from draftleaguebot.scoring import setup
+
+		return setup.score_defensive_setup(self, attacker, target, boosts_both=boosts_both)
 
 	def _score_special_setup(self, attacker, target):
-		score = 6
-		if self._is_incapacitated(target):
-			score += 3
-		elif not self._is_three_hko_threat(attacker, target):
-			score += 1
-			if self._is_faster(attacker, target):
-				score += 1
-		if not self._is_faster(attacker, target) and self._is_two_hko_threat(attacker, target):
-			score -= 5
-		if self._get_boost(attacker, "spa") >= 2:
-			score -= 1
-		return score
+		from draftleaguebot.scoring import setup
+
+		return setup.score_special_setup(self, attacker, target)
 
 	def _score_speed_setup(self, attacker, target):
-		if not self._is_faster(attacker, target):
-			return 7
-		return -20
+		from draftleaguebot.scoring import setup
+
+		return setup.score_speed_setup(self, attacker, target)
 
 	def _score_shell_smash(self, battle, attacker, target):
-		score = 6
-		if self._is_incapacitated(target):
-			score += 3
-		if not self._can_be_ko_after_setup(battle, attacker, target):
-			score += 2
-		else:
-			score -= 2
-		if self._get_boost(attacker, "atk") >= 1 or self._get_boost(attacker, "spa") >= 6:
-			return -20
-		return score
+		from draftleaguebot.scoring import setup
+
+		return setup.score_shell_smash(self, battle, attacker, target)
 
 	def _score_belly_drum(self, battle, attacker, target):
-		if self._is_incapacitated(target):
-			return 9
-		if not self._can_be_ko_after_setup(battle, attacker, target, hp_multiplier=0.5):
-			return 8
-		return 4
+		from draftleaguebot.scoring import setup
+
+		return setup.score_belly_drum(self, battle, attacker, target)
 
 	def _score_mixed_setup(self, attacker, target, move):
-		if move.id in {"coil", "bulkup", "noretreat"}:
-			if self._has_physical_move(target) and not self._has_special_move(target):
-				return self._score_defensive_setup(attacker, target)
-			return self._score_offensive_setup(attacker, target)
-		if move.id in {"calmmind", "quiverdance"}:
-			if self._has_special_move(target) and not self._has_physical_move(target):
-				return self._score_defensive_setup(attacker, target)
-			return self._score_offensive_setup(attacker, target)
-		return self._score_offensive_setup(attacker, target)
+		from draftleaguebot.scoring import setup
+
+		return setup.score_mixed_setup(self, attacker, target, move)
 
 	def _setup_synergy_bonus(self, attacker, move):
-		if attacker is None:
-			return 0
-		moves = getattr(attacker, "moves", {})
-		if not moves:
-			return 0
-		power_trip = "powertrip" in moves
-		stored_power = "storedpower" in moves
-		body_press = "bodypress" in moves
+		from draftleaguebot.scoring import setup
 
-		bonus = 0
-		if power_trip:
-			bonus += 1
-		if stored_power:
-			bonus += 1
-		if body_press and self._is_defensive_setup(move):
-			bonus += 1
-		return bonus
+		return setup.setup_synergy_bonus(attacker, move)
 
 	def _is_setup_move(self, move):
-		return move.id in self._setup_move_ids()
+		from draftleaguebot.scoring import setup
+
+		return setup.is_setup_move(move)
 
 	def _setup_move_ids(self):
-		return {
-			"poweruppunch",
-			"swordsdance",
-			"howl",
-			"stuffcheeks",
-			"barrier",
-			"acidarmor",
-			"irondefense",
-			"cottonguard",
-			"harden",
-			"chargebeam",
-			"tailglow",
-			"nastyplot",
-			"cosmicpower",
-			"bulkup",
-			"calmmind",
-			"dragondance",
-			"coil",
-			"honeclaws",
-			"quiverdance",
-			"shiftgear",
-			"shellsmash",
-			"growth",
-			"workup",
-			"curse",
-			"noretreat",
-			"stockpile",
-			"agility",
-			"rockpolish",
-			"autotomize",
-			"bellydrum",
-			"focusenergy",
-			"laserfocus",
-		}
+		from draftleaguebot.scoring import setup
+
+		return setup.setup_move_ids()
 
 	def _is_special_setup(self, move):
-		return move.id in {"tailglow", "nastyplot", "workup"}
+		from draftleaguebot.scoring import setup
+
+		return setup.is_special_setup(move)
 
 	def _is_defensive_setup(self, move):
-		return move.id in {"barrier", "acidarmor", "irondefense", "cottonguard", "harden", "stockpile", "cosmicpower"}
+		from draftleaguebot.scoring import setup
+
+		return setup.is_defensive_setup(move)
 
 	def _is_mixed_setup(self, move):
-		return move.id in {"coil", "bulkup", "noretreat", "calmmind", "quiverdance"}
+		from draftleaguebot.scoring import setup
+
+		return setup.is_mixed_setup(move)
 
 	def _is_speed_setup(self, move):
-		return move.id in {"agility", "rockpolish", "autotomize"}
+		from draftleaguebot.scoring import setup
+
+		return setup.is_speed_setup(move)
 
 	def _threatened_by_ko(self, battle, attacker, target):
-		if target is None:
-			return False
-		return self._can_ko_target(battle, target, attacker)
+		from draftleaguebot.scoring import setup
+
+		return setup.threatened_by_ko(self, battle, attacker, target)
 
 	def _is_two_hko_threat(self, attacker, target):
-		return self._estimate_max_damage_ratio(target, attacker) >= 0.5
+		from draftleaguebot.scoring import setup
+
+		return setup.is_two_hko_threat(self, attacker, target)
 
 	def _is_three_hko_threat(self, attacker, target):
-		return self._estimate_max_damage_ratio(target, attacker) >= (1 / 3)
+		from draftleaguebot.scoring import setup
+
+		return setup.is_three_hko_threat(self, attacker, target)
 
 	def _estimate_max_damage_ratio(self, attacker, target):
-		moves = getattr(attacker, "moves", {})
-		if not moves:
-			return 0
-		current_hp = self._get_target_current_hp(target)
-		if current_hp is None or current_hp == 0:
-			return 0
-		max_ratio = 0
-		for move in moves.values():
-			if not self._is_damaging(move):
-				continue
-			damage = self._estimate_damage(None, attacker, move, target, use_max_roll=True)
-			ratio = damage / current_hp
-			if ratio > max_ratio:
-				max_ratio = ratio
-		return max_ratio
+		from draftleaguebot.scoring import setup
+
+		return setup.estimate_max_damage_ratio(self, attacker, target)
 
 	def _can_be_ko_after_setup(self, battle, attacker, target, hp_multiplier=1.0):
-		if target is None:
-			return False
-		current_hp = self._get_target_current_hp(attacker)
-		if current_hp is None:
-			return False
-		current_hp *= hp_multiplier
-		moves = getattr(target, "moves", {})
-		for move in moves.values():
-			if not self._is_damaging(move):
-				continue
-			damage = self._estimate_damage(battle, target, move, attacker, use_max_roll=True)
-			if damage >= current_hp:
-				return True
-		return False
+		from draftleaguebot.scoring import setup
+
+		return setup.can_be_ko_after_setup(self, battle, attacker, target, hp_multiplier=hp_multiplier)
 
 	def _get_boost(self, pokemon, stat):
 		from draftleaguebot.mechanics import pokemon_state

@@ -528,11 +528,11 @@ Use `context` as the current bot instance during the first pass so helper calls 
 
 Move damage-specific methods from `bot_logic.py` to `scoring/damage.py`. Keep wrappers until all callers point to the module.
 
-- [ ] **Step 4: Move status rules**
+- [x] **Step 4: Move status rules**
 
 Move status/support methods from `bot_logic.py` to `scoring/status.py`. Keep wrappers until all callers point to the module.
 
-- [ ] **Step 5: Move setup rules**
+- [x] **Step 5: Move setup rules**
 
 Move setup and boost-related scoring from `bot_logic.py` to `scoring/setup.py`.
 

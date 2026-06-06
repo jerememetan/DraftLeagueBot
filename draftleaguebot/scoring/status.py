@@ -1,3 +1,6 @@
+from draftleaguebot.scoring import setup
+
+
 def score_status_move(context, battle, attacker, move, target, opponents):
     """Score one non-damaging move-target candidate."""
     move_id = getattr(move, "id", None)
@@ -39,8 +42,8 @@ def score_status_move(context, battle, attacker, move, target, opponents):
     if context._is_poison_status_move(move):
         return context._score_poison_move(battle, attacker, target)
 
-    if context._is_setup_move(move):
-        return context._score_setup_move(battle, attacker, target, move)
+    if setup.is_setup_move(move):
+        return setup.score_setup_move(context, battle, attacker, target, move)
 
     if context._is_recovery_move(move):
         return context._score_recovery_move(battle, attacker, move)

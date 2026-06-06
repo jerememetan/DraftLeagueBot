@@ -54,17 +54,19 @@ def test_score_status_move_blocks_helping_hand_when_partner_uses_support():
     assert result == expected
 
 
-def test_score_status_move_routes_setup_moves_to_context_helper():
+def test_score_status_move_routes_setup_moves_to_setup_module():
     from draftleaguebot.scoring import status
 
     context = SimpleNamespace(
         _is_sleep_status_move=lambda _move: False,
         _is_poison_status_move=lambda _move: False,
-        _is_setup_move=lambda _move: True,
-        _score_setup_move=lambda _battle, _attacker, _target, _move: 12,
+        _threatened_by_ko=lambda _battle, _attacker, _target: False,
+        _target_has_unaware=lambda _target: False,
+        _is_incapacitated=lambda _target: True,
+        _is_faster=lambda _attacker, _target: True,
     )
     move = SimpleNamespace(id="swordsdance")
-    expected = 12
+    expected = 9
 
     result = status.score_status_move(
         context,
