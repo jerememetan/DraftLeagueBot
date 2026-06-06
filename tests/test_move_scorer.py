@@ -39,12 +39,12 @@ def test_score_move_dispatches_damaging_moves_to_context_helpers():
     assert result == expected
 
 
-def test_score_move_dispatches_status_moves_to_context_helper():
+def test_score_move_dispatches_status_moves_to_status_module():
     from draftleaguebot.scoring import move_scorer
 
     context = SimpleNamespace(
         _is_damaging=lambda _move: False,
-        _score_status_move=lambda _battle, _attacker, _move, _target, _opponents: 9,
+        _score_tailwind=lambda _battle: 9,
     )
     expected = 9.0
 
@@ -52,7 +52,7 @@ def test_score_move_dispatches_status_moves_to_context_helper():
         context,
         battle=SimpleNamespace(),
         attacker=SimpleNamespace(),
-        move=SimpleNamespace(),
+        move=SimpleNamespace(id="tailwind"),
         target=SimpleNamespace(),
         opponents=[],
         attacker_moves=[],

@@ -361,71 +361,9 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 		return orders.ally_positions(battle, attacker)
 
 	def _score_status_move(self, battle, attacker, move, target, opponents):
-		move_id = getattr(move, "id", None)
-		if move_id is None:
-			return 0
+		from draftleaguebot.scoring import status
 
-		if move_id in {"tailwind"}:
-			return self._score_tailwind(battle)
-
-		if move_id in {"trickroom"}:
-			return self._score_trick_room(battle)
-
-		if move_id in {"helpinghand", "followme"}:
-			if self._partner_using_support_or_status(battle, attacker):
-				return -20
-			return 6
-
-		if move_id == "coaching":
-			return self._score_coaching(battle, attacker)
-
-
-		if move_id == "finalgambit":
-			return self._score_final_gambit(battle, attacker, move, target)
-
-		if move_id == "memento":
-			return self._score_memento(battle, attacker)
-
-		if move_id == "destinybond":
-			return self._score_destiny_bond(battle, attacker, target)
-
-		if move_id in {"thunderwave", "stunspore", "glare", "nuzzle", "zapcannon"}:
-			return self._score_paralysis(attacker, target)
-
-		if move_id == "willowisp":
-			return self._score_wisp(battle, attacker, target)
-
-		if self._is_sleep_status_move(move):
-			return self._score_sleep_move(battle, attacker, move, target)
-
-		if self._is_poison_status_move(move):
-			return self._score_poison_move(battle, attacker, target)
-
-		if self._is_setup_move(move):
-			return self._score_setup_move(battle, attacker, target, move)
-
-		if self._is_recovery_move(move):
-			return self._score_recovery_move(battle, attacker, move)
-
-		if self._is_hazard_move(move):
-			return self._score_hazard_move(battle, attacker, move)
-
-		if self._is_screen_move(move):
-			return self._score_screen_move(battle, attacker, move)
-
-		if move_id == "taunt":
-			return self._score_taunt(battle, attacker, target)
-
-		if move_id == "encore":
-			return self._score_encore(attacker, target)
-
-		if move_id in {"protect", "kingsshield"}:
-			return self._score_protect(attacker, target)
-
-		if move_id == "batonpass":
-			return self._score_baton_pass(battle, attacker)
-
-		return 0
+		return status.score_status_move(self, battle, attacker, move, target, opponents)
 
 	def _score_coaching(self, battle, attacker):
 		partner = self._get_partner(battle, attacker)
