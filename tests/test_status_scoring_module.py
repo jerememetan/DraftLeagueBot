@@ -18,15 +18,25 @@ def test_score_status_move_returns_zero_when_move_id_is_missing():
     assert result == expected
 
 
-def test_score_status_move_routes_tailwind_to_context_helper():
+def test_score_status_move_routes_tailwind_to_speed_control_module():
     from draftleaguebot.scoring import status
 
-    context = SimpleNamespace(_score_tailwind=lambda _battle: 9)
-    expected = 9
+    context = SimpleNamespace(
+        _ally_side_condition_active=lambda _battle, _condition: False,
+        _is_trick_room_active=lambda _battle: False,
+        _side_condition_active=lambda _battle, _condition: False,
+        _safe_speed=lambda pokemon: pokemon.stats["spe"],
+        _should_debug=lambda _battle: False,
+    )
+    battle = SimpleNamespace(
+        active_pokemon=[SimpleNamespace(stats={"spe": 70}, name="ally")],
+        opponent_active_pokemon=[SimpleNamespace(stats={"spe": 120}, name="foe")],
+    )
+    expected = 11
 
     result = status.score_status_move(
         context,
-        battle=SimpleNamespace(),
+        battle=battle,
         attacker=SimpleNamespace(),
         move=SimpleNamespace(id="tailwind"),
         target=SimpleNamespace(),

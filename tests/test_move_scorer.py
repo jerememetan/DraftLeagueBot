@@ -44,13 +44,21 @@ def test_score_move_dispatches_status_moves_to_status_module():
 
     context = SimpleNamespace(
         _is_damaging=lambda _move: False,
-        _score_tailwind=lambda _battle: 9,
+        _ally_side_condition_active=lambda _battle, _condition: False,
+        _is_trick_room_active=lambda _battle: False,
+        _side_condition_active=lambda _battle, _condition: False,
+        _safe_speed=lambda pokemon: pokemon.stats["spe"],
+        _should_debug=lambda _battle: False,
     )
-    expected = 9.0
+    battle = SimpleNamespace(
+        active_pokemon=[SimpleNamespace(stats={"spe": 70}, name="ally")],
+        opponent_active_pokemon=[SimpleNamespace(stats={"spe": 120}, name="foe")],
+    )
+    expected = 11.0
 
     result = move_scorer.score_move(
         context,
-        battle=SimpleNamespace(),
+        battle=battle,
         attacker=SimpleNamespace(),
         move=SimpleNamespace(id="tailwind"),
         target=SimpleNamespace(),

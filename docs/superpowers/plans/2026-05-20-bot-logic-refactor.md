@@ -540,7 +540,7 @@ Move setup and boost-related scoring from `bot_logic.py` to `scoring/setup.py`.
 
 Move partner interaction scoring from `bot_logic.py` to `scoring/doubles.py`.
 
-- [ ] **Step 7: Move speed-control rules**
+- [x] **Step 7: Move speed-control rules**
 
 Move Tailwind, Trick Room, speed profile, and damaging speed-control scoring from `bot_logic.py` to `scoring/speed_control.py`.
 

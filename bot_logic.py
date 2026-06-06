@@ -1042,25 +1042,21 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 		return False
 
 	def _is_speed_control_damage_move(self, move):
-		move_id = getattr(move, "id", None)
-		return move_id in {"icywind", "electroweb", "rocktomb", "mudshot", "lowsweep", "bulldoze"}
+		from draftleaguebot.scoring import speed_control
+
+		return speed_control.is_speed_control_damage_move(move)
 
 	def _score_speed_control_damage(self, battle, attacker, move, target, highest_damage):
-		if highest_damage:
-			return 0
-		if self._is_immune_to_speed_drop(target):
-			base = 5
-		else:
-			base = 6 if not self._is_faster(attacker, target) else 5
-		if self._is_spread_move(move) and getattr(move, "id", None) in {"icywind", "electroweb"}:
-			base += 1
-		return base
+		from draftleaguebot.scoring import speed_control
+
+		return speed_control.score_speed_control_damage(
+			self, battle, attacker, move, target, highest_damage
+		)
 
 	def _is_immune_to_speed_drop(self, target):
-		if target is None:
-			return False
-		ability = getattr(target, "ability", None)
-		return ability in {"contrary", "clearbody", "whitesmoke"}
+		from draftleaguebot.scoring import speed_control
+
+		return speed_control.is_immune_to_speed_drop(target)
 
 	def _is_spread_move(self, move):
 		move_target = getattr(move, "deduced_target", None) or getattr(move, "target", None)
@@ -1181,43 +1177,14 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 		return pokemon_state.is_faster(attacker, defender)
 
 	def _team_is_slower(self, battle):
-		allies = [p for p in battle.active_pokemon if p is not None]
-		opponents = [p for p in battle.opponent_active_pokemon if p is not None]
-		if not allies or not opponents:
-			return False
-		ally_speeds = [self._safe_speed(p) for p in allies]
-		foe_speeds = [self._safe_speed(p) for p in opponents]
-		if not ally_speeds or not foe_speeds:
-			return False
-		fastest_ally = max(ally_speeds)
-		fastest_foe = max(foe_speeds)
-		return fastest_ally < fastest_foe
+		from draftleaguebot.scoring import speed_control
+
+		return speed_control.team_is_slower(self, battle)
 
 	def _speed_profile(self, battle):
-		allies = [p for p in battle.active_pokemon if p is not None]
-		opponents = [p for p in battle.opponent_active_pokemon if p is not None]
-		if not allies or not opponents:
-			return None
-		ally_speeds_raw = [self._safe_speed(p) for p in allies]
-		foe_speeds_raw = [self._safe_speed(p) for p in opponents]
-		ally_speeds = [s for s in ally_speeds_raw if s > 0]
-		foe_speeds = [s for s in foe_speeds_raw if s > 0]
-		if self._should_debug(battle):
-			turn = getattr(battle, "turn", "?")
-			ally_names = [getattr(p, "name", "?") for p in allies]
-			foe_names = [getattr(p, "name", "?") for p in opponents]
-			print(
-				"[AI DEBUG] "
-				f"turn={turn} speed_raw allies={list(zip(ally_names, ally_speeds_raw))} "
-				f"foes={list(zip(foe_names, foe_speeds_raw))}"
-			)
-			print(
-				"[AI DEBUG] "
-				f"turn={turn} speed_filtered allies={ally_speeds} foes={foe_speeds}"
-			)
-		if not ally_speeds or not foe_speeds:
-			return None
-		return min(ally_speeds), max(ally_speeds), min(foe_speeds), max(foe_speeds)
+		from draftleaguebot.scoring import speed_control
+
+		return speed_control.speed_profile(self, battle)
 
 	def _ally_side_condition_active(self, battle, condition):
 		from draftleaguebot.mechanics import effects
@@ -1225,50 +1192,14 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 		return effects.ally_side_condition_active(battle, condition)
 
 	def _score_tailwind(self, battle):
-		if self._ally_side_condition_active(battle, SideCondition.TAILWIND):
-			return -20
-		if self._is_trick_room_active(battle):
-			return -8
-		score = 6
-		profile = self._speed_profile(battle)
-		if self._should_debug(battle):
-			turn = getattr(battle, "turn", "?")
-			print(f"[AI DEBUG] turn={turn} move=tailwind speed_profile={profile}")
-		if self._side_condition_active(battle, SideCondition.TAILWIND):
-			score += 5
-		if profile is None:
-			return score
-		min_ally, max_ally, min_foe, max_foe = profile
-		if max_ally < max_foe:
-			score += 3
-		if max_ally < min_foe:
-			score += 2
-		if max_ally > max_foe:
-			score -= 2
-		return score
+		from draftleaguebot.scoring import speed_control
+
+		return speed_control.score_tailwind(self, battle)
 
 	def _score_trick_room(self, battle):
-		if self._is_trick_room_active(battle):
-			return -20
-		score = 6
-		if self._ally_side_condition_active(battle, SideCondition.TAILWIND):
-			score -= 4
-		if self._side_condition_active(battle, SideCondition.TAILWIND):
-			score += 3
-		profile = self._speed_profile(battle)
-		if self._should_debug(battle):
-			turn = getattr(battle, "turn", "?")
-			print(f"[AI DEBUG] turn={turn} move=trickroom speed_profile={profile}")
-		if profile is None:
-			return score
-		min_ally, max_ally, min_foe, max_foe = profile
-		if max_ally < max_foe:
-			score += 4
-		if max_ally < min_foe:
-			score += 2
-		if max_ally > max_foe:
-			score -= 5
-		return score
+		from draftleaguebot.scoring import speed_control
+
+		return speed_control.score_trick_room(self, battle)
 
 	def _is_trick_room_active(self, battle):
 		from draftleaguebot.mechanics import effects

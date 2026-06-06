@@ -1,4 +1,4 @@
-from draftleaguebot.scoring import doubles
+from draftleaguebot.scoring import doubles, speed_control
 
 
 def score_damaging_move(context, battle, attacker, move, target, opponents, attacker_moves):
@@ -45,8 +45,10 @@ def score_damaging_move(context, battle, attacker, move, target, opponents, atta
     if move.priority > 0 and context._is_threatened_by_any_faster_opponent(battle, attacker):
         score += 11
 
-    if context._is_speed_control_damage_move(move):
-        score += context._score_speed_control_damage(battle, attacker, move, target, highest_damage)
+    if speed_control.is_speed_control_damage_move(move):
+        score += speed_control.score_speed_control_damage(
+            context, battle, attacker, move, target, highest_damage
+        )
 
     if context._is_offense_drop_damage_move(move):
         score += context._score_offense_drop_damage(battle, attacker, move, target, highest_damage)

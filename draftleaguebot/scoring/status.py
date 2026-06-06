@@ -1,4 +1,4 @@
-from draftleaguebot.scoring import doubles, setup
+from draftleaguebot.scoring import doubles, setup, speed_control
 
 
 def score_status_move(context, battle, attacker, move, target, opponents):
@@ -8,10 +8,10 @@ def score_status_move(context, battle, attacker, move, target, opponents):
         return 0
 
     if move_id in {"tailwind"}:
-        return context._score_tailwind(battle)
+        return speed_control.score_tailwind(context, battle)
 
     if move_id in {"trickroom"}:
-        return context._score_trick_room(battle)
+        return speed_control.score_trick_room(context, battle)
 
     if move_id in {"helpinghand", "followme"}:
         return 6
