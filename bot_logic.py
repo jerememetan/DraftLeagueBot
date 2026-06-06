@@ -116,70 +116,9 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 		debug_helpers.log_final_orders(orders)
 
 	def _score_move(self, battle, attacker, move, target, opponents, attacker_moves):
-		score = 0.0
+		from draftleaguebot.scoring import move_scorer
 
-		if self._is_damaging(move):
-			if self._is_immune_to_move(battle, move, target):
-				return -20
-			damage = self._estimate_damage(battle, attacker, move, target)
-			
-			# DEBUG: Show damage calcs
-			if self._should_debug(battle):
-				target_name = getattr(target, "name", "?")
-				move_name = getattr(move, "id", "?")
-				print(f"    [DAMAGE] {move_name}→{target_name}: {damage:.1f}", end="")
-			
-			highest_damage = self._is_highest_damage_move(
-				battle, attacker, move, target, opponents, attacker_moves, damage
-			)
-			if highest_damage:
-				if self._should_debug(battle):
-					print(f" (HIGHEST)", end="")
-				score += self._rng_weight(6, 8, 0.8)
-			
-			if self._should_debug(battle):
-				print()  # newline after damage debug
-
-			if self._estimated_kill(target, damage):
-				if self._is_faster(attacker, target) or (
-					move.priority > 0 and not self._is_faster(attacker, target)
-				):
-					score += 6
-				else:
-					score += 3
-
-				if self._has_snowball_ability(attacker):
-					score += 1
-
-			if self._is_high_crit(move) and self._is_super_effective(battle, move, target):
-				score += self._rng_weight(3, 5, 0.3)
-			if self._is_super_effective(battle, move, target):
-				score += self._rng_weight(2, 4, 0.3)
-			# Add penalty for resisted hits
-			score += self._resisted_penalty(battle, move, target, scale=10)
-			if move.priority > 0 and self._is_threatened_by_any_faster_opponent(battle, attacker):
-				score += 11
-
-			if self._is_speed_control_damage_move(move):
-				score += self._score_speed_control_damage(battle, attacker, move, target, highest_damage)
-
-			if self._is_offense_drop_damage_move(move):
-				score += self._score_offense_drop_damage(battle, attacker, move, target, highest_damage)
-
-			if self._is_spdef_drop_damage_move(move):
-				score += 6
-
-			score += self._score_move_specific_damage(battle, attacker, move, target)
-
-			if self._is_contrary_setup_attack(attacker, move, highest_damage, damage, target):
-				score += self._score_contrary_setup(attacker, target, move)
-
-			score += self._apply_doubles_damage_bonuses(battle, attacker, move, target)
-
-		else:
-			score += self._score_status_move(battle, attacker, move, target, opponents)
-
-		return score
+		return move_scorer.score_move(self, battle, attacker, move, target, opponents, attacker_moves)
 
 	def _is_contrary_setup_attack(self, attacker, move, highest_damage, damage, target):
 		if getattr(attacker, "ability", None) != "contrary":
@@ -1666,3 +1605,4 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 
 	def _rng_weight(self, low, high, low_prob):
 		return low if random.random() < low_prob else high
+

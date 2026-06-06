@@ -35,6 +35,7 @@
 ## Task 1: Add Import Contract Tests
 
 **Files:**
+
 - Create: `tests/test_import_contract.py`
 
 - [x] **Step 1: Write the failing import contract test**
@@ -97,6 +98,7 @@ git commit -m "test: add bot import contract"
 ## Task 2: Add File Size Limit Test
 
 **Files:**
+
 - Create: `tests/test_file_size_limits.py`
 
 - [x] **Step 1: Write the failing file-size test**
@@ -147,6 +149,7 @@ git commit -m "test: enforce python file size limit"
 ## Task 3: Move Debug Helpers
 
 **Files:**
+
 - Create: `draftleaguebot/debug.py`
 - Modify: `bot_logic.py`
 
@@ -224,6 +227,7 @@ git commit -m "refactor: extract bot debug helpers"
 ## Task 4: Move Order Helpers
 
 **Files:**
+
 - Create: `draftleaguebot/orders.py`
 - Modify: `bot_logic.py`
 
@@ -286,6 +290,7 @@ git commit -m "refactor: extract double battle order helpers"
 ## Task 5: Move Target Mechanics
 
 **Files:**
+
 - Create: `draftleaguebot/mechanics/__init__.py`
 - Create: `draftleaguebot/mechanics/targets.py`
 - Modify: `bot_logic.py`
@@ -344,6 +349,7 @@ git commit -m "refactor: extract targeting mechanics"
 ## Task 6: Move Pokemon State Helpers
 
 **Files:**
+
 - Create: `draftleaguebot/mechanics/pokemon_state.py`
 - Modify: `bot_logic.py`
 
@@ -391,6 +397,7 @@ git commit -m "refactor: extract pokemon state helpers"
 ## Task 7: Move Effect and Move Fact Helpers
 
 **Files:**
+
 - Create: `draftleaguebot/mechanics/effects.py`
 - Modify: `bot_logic.py`
 
@@ -439,6 +446,7 @@ git commit -m "refactor: extract battle effect helpers"
 ## Task 8: Move Damage Calculation
 
 **Files:**
+
 - Create: `draftleaguebot/mechanics/damage_calc.py`
 - Modify: `bot_logic.py`
 
@@ -482,7 +490,7 @@ Run:
 
 Expected: PASS except the known file-size failure.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```powershell
 git add bot_logic.py draftleaguebot/mechanics/damage_calc.py
@@ -492,6 +500,7 @@ git commit -m "refactor: extract damage calculation"
 ## Task 9: Move Scoring Modules Incrementally
 
 **Files:**
+
 - Create: `draftleaguebot/scoring/__init__.py`
 - Create: `draftleaguebot/scoring/move_scorer.py`
 - Create: `draftleaguebot/scoring/damage.py`
@@ -501,7 +510,7 @@ git commit -m "refactor: extract damage calculation"
 - Create: `draftleaguebot/scoring/speed_control.py`
 - Modify: `bot_logic.py`
 
-- [ ] **Step 1: Create scoring package marker files**
+- [x] **Step 1: Create scoring package marker files**
 
 Create `draftleaguebot/scoring/__init__.py`:
 
@@ -509,7 +518,7 @@ Create `draftleaguebot/scoring/__init__.py`:
 """Scoring rules for DraftLeagueBot battle decisions."""
 ```
 
-- [ ] **Step 2: Move the top-level score dispatcher**
+- [x] **Step 2: Move the top-level score dispatcher**
 
 Move `_score_move` into `scoring/move_scorer.py` as `score_move(context, battle, attacker, move, target, opponents, attacker_moves)`.
 
@@ -555,6 +564,7 @@ git commit -m "refactor: extract bot scoring modules"
 ## Task 10: Move `DoublesMvpBot` and Replace Root File with Shim
 
 **Files:**
+
 - Modify: `draftleaguebot/bot.py`
 - Modify: `draftleaguebot/__init__.py`
 - Modify: `bot_logic.py`
@@ -611,6 +621,7 @@ git commit -m "refactor: move doubles bot into package"
 ## Task 11: Final Verification
 
 **Files:**
+
 - Read: `README.md`
 - Read: `AI_LOGIC_DOUBLES_MVP.txt`
 - Run: test suite
