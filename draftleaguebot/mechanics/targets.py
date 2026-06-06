@@ -7,7 +7,6 @@ SELF_OR_SIDE_TARGETS = {
     Target.ALLIES,
     Target.FOE_SIDE,
     Target.ALL,
-    Target.ALL_ADJACENT,
     Target.RANDOM_NORMAL,
     Target.SCRIPTED,
 }
@@ -51,7 +50,13 @@ def candidate_targets(battle, attacker, move, opponents, setup_move_ids):
 
 def move_allows_foe(move_target):
     """Return whether this move target mode can select an opponent."""
-    return move_target in {Target.NORMAL, Target.ADJACENT_FOE, Target.ANY, Target.ALL_ADJACENT_FOES}
+    return move_target in {
+        Target.NORMAL,
+        Target.ADJACENT_FOE,
+        Target.ANY,
+        Target.ALL_ADJACENT,
+        Target.ALL_ADJACENT_FOES,
+    }
 
 
 def move_allows_ally(move_target, move):

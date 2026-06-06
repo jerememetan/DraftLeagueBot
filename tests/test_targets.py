@@ -48,6 +48,21 @@ def test_candidate_targets_scores_spread_foe_moves_against_opponents():
     assert result == expected
 
 
+def test_candidate_targets_scores_all_adjacent_moves_against_opponents():
+    attacker = SimpleNamespace(name="attacker")
+    opponents = [SimpleNamespace(name="foe-1"), SimpleNamespace(name="foe-2")]
+    move = SimpleNamespace(
+        id="earthquake",
+        target=Target.ALL_ADJACENT,
+        deduced_target=Target.ALL_ADJACENT,
+    )
+    expected = opponents
+
+    result = targets.candidate_targets(None, attacker, move, opponents, setup_move_ids=set())
+
+    assert result == expected
+
+
 def test_ally_target_allowed_preserves_current_policy():
     assert targets.ally_target_allowed(SimpleNamespace(id="fling")) is True
     assert targets.ally_target_allowed(SimpleNamespace(id="beatup")) is True
