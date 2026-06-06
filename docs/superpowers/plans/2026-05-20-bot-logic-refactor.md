@@ -442,7 +442,7 @@ git commit -m "refactor: extract battle effect helpers"
 - Create: `draftleaguebot/mechanics/damage_calc.py`
 - Modify: `bot_logic.py`
 
-- [ ] **Step 1: Move damage calculation helpers**
+- [x] **Step 1: Move damage calculation helpers**
 
 Move these methods into `damage_calc.py`:
 
@@ -456,7 +456,7 @@ get_offense_defense_stats(attacker, target, move)
 
 Import `calculate_damage`, `compute_raw_stats`, and `GenData` only in `damage_calc.py`.
 
-- [ ] **Step 2: Preserve debug behavior**
+- [x] **Step 2: Preserve debug behavior**
 
 Pass `debug=self._should_debug(battle)` from the wrapper method:
 
@@ -472,7 +472,7 @@ def _estimate_damage(self, battle, attacker, move, target, use_max_roll=False):
     )
 ```
 
-- [ ] **Step 3: Run tests**
+- [x] **Step 3: Run tests**
 
 Run:
 
