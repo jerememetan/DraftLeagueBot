@@ -1,0 +1,87 @@
+from types import SimpleNamespace
+
+
+def make_damage_context(**overrides):
+    defaults = {
+        "_is_immune_to_move": lambda _battle, _move, _target: False,
+        "_estimate_damage": lambda _battle, _attacker, _move, _target: 50,
+        "_should_debug": lambda _battle: False,
+        "_is_highest_damage_move": lambda *_args: True,
+        "_rng_weight": lambda low, _high, _prob: low,
+        "_estimated_kill": lambda _target, _damage: False,
+        "_is_high_crit": lambda _move: False,
+        "_is_super_effective": lambda _battle, _move, _target: False,
+        "_resisted_penalty": lambda _battle, _move, _target, scale=10: 0,
+        "_is_threatened_by_any_faster_opponent": lambda _battle, _attacker: False,
+        "_is_speed_control_damage_move": lambda _move: False,
+        "_is_offense_drop_damage_move": lambda _move: False,
+        "_is_spdef_drop_damage_move": lambda _move: False,
+        "_score_move_specific_damage": lambda _battle, _attacker, _move, _target: 0,
+        "_is_contrary_setup_attack": lambda _attacker, _move, _highest, _damage, _target: False,
+        "_apply_doubles_damage_bonuses": lambda _battle, _attacker, _move, _target: 0,
+    }
+    defaults.update(overrides)
+    return SimpleNamespace(**defaults)
+
+
+def test_score_damaging_move_returns_immune_penalty():
+    from draftleaguebot.scoring import damage
+
+    context = make_damage_context(_is_immune_to_move=lambda _battle, _move, _target: True)
+    expected = -20
+
+    result = damage.score_damaging_move(
+        context,
+        battle=SimpleNamespace(),
+        attacker=SimpleNamespace(),
+        move=SimpleNamespace(priority=0),
+        target=SimpleNamespace(),
+        opponents=[],
+        attacker_moves=[],
+    )
+
+    assert result == expected
+
+
+def test_score_damaging_move_adds_highest_damage_bonus():
+    from draftleaguebot.scoring import damage
+
+    context = make_damage_context()
+    move = SimpleNamespace(priority=0)
+    expected = 6.0
+
+    result = damage.score_damaging_move(
+        context,
+        battle=SimpleNamespace(),
+        attacker=SimpleNamespace(),
+        move=move,
+        target=SimpleNamespace(),
+        opponents=[],
+        attacker_moves=[move],
+    )
+
+    assert result == expected
+
+
+def test_score_damaging_move_adds_fast_ko_bonus_and_snowball_bonus():
+    from draftleaguebot.scoring import damage
+
+    context = make_damage_context(
+        _estimated_kill=lambda _target, _damage: True,
+        _is_faster=lambda _attacker, _target: True,
+        _has_snowball_ability=lambda _attacker: True,
+    )
+    move = SimpleNamespace(priority=0)
+    expected = 13.0
+
+    result = damage.score_damaging_move(
+        context,
+        battle=SimpleNamespace(),
+        attacker=SimpleNamespace(),
+        move=move,
+        target=SimpleNamespace(),
+        opponents=[],
+        attacker_moves=[move],
+    )
+
+    assert result == expected

@@ -524,7 +524,7 @@ Move `_score_move` into `scoring/move_scorer.py` as `score_move(context, battle,
 
 Use `context` as the current bot instance during the first pass so helper calls still resolve while extraction continues.
 
-- [ ] **Step 3: Move damaging rules**
+- [x] **Step 3: Move damaging rules**
 
 Move damage-specific methods from `bot_logic.py` to `scoring/damage.py`. Keep wrappers until all callers point to the module.
 
