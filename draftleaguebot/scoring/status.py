@@ -1,4 +1,4 @@
-from draftleaguebot.scoring import setup
+from draftleaguebot.scoring import doubles, setup
 
 
 def score_status_move(context, battle, attacker, move, target, opponents):
@@ -14,12 +14,12 @@ def score_status_move(context, battle, attacker, move, target, opponents):
         return context._score_trick_room(battle)
 
     if move_id in {"helpinghand", "followme"}:
-        if context._partner_using_support_or_status(battle, attacker):
+        if doubles.partner_using_support_or_status(context, battle, attacker):
             return -20
         return 6
 
     if move_id == "coaching":
-        return context._score_coaching(battle, attacker)
+        return doubles.score_coaching(context, battle, attacker)
 
     if move_id == "finalgambit":
         return context._score_final_gambit(battle, attacker, move, target)

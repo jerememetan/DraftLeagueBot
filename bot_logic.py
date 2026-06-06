@@ -366,21 +366,9 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 		return status.score_status_move(self, battle, attacker, move, target, opponents)
 
 	def _score_coaching(self, battle, attacker):
-		partner = self._get_partner(battle, attacker)
-		if partner is None:
-			return -20
-		if getattr(partner, "ability", None) == "contrary":
-			return -20
-		score = 6
-		atk_boost = self._get_boost(partner, "atk")
-		def_boost = self._get_boost(partner, "def")
-		if atk_boost < 2:
-			score += 1 - atk_boost
-		if def_boost < 2:
-			score += 1 - def_boost
-		if random.random() < 0.8:
-			score += 1
-		return score
+		from draftleaguebot.scoring import doubles
+
+		return doubles.score_coaching(self, battle, attacker)
 
 	def _score_baton_pass(self, battle, attacker):
 		if not self._has_available_switch(battle):
@@ -938,17 +926,9 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 		return self._has_status_or_effect(pokemon)
    # why is this checking the last move (previous turn??) instead of the current move?
 	def _partner_using_support_or_status(self, battle, attacker):
-		partner = self._get_partner(battle, attacker)
-		if partner is None:
-			return False
-		last_move = getattr(partner, "last_move", None)
-		if last_move is None:
-			return False
-		move_id = getattr(last_move, "id", None)
-		if move_id in {"helpinghand", "followme"}:
-			return True
-		category = getattr(last_move, "category", None)
-		return category is not None and category.name.lower() == "status"
+		from draftleaguebot.scoring import doubles
+
+		return doubles.partner_using_support_or_status(self, battle, attacker)
 
 	def _has_move_id(self, pokemon, move_id):
 		moves = getattr(pokemon, "moves", {})
@@ -996,10 +976,9 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 		return "hex" in moves
 
 	def _partner_has_hex(self, battle, attacker):
-		partner = self._get_partner(battle, attacker)
-		if partner is None:
-			return False
-		return self._has_hex_move(partner)
+		from draftleaguebot.scoring import doubles
+
+		return doubles.partner_has_hex(self, battle, attacker)
 
 	def _get_partner(self, battle, attacker):
 		from draftleaguebot.mechanics import targets
@@ -1007,21 +986,9 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 		return targets.get_partner(battle, attacker)
 
 	def _apply_doubles_damage_bonuses(self, battle, attacker, move, target):
-		move_id = getattr(move, "id", None)
-		if move_id is None:
-			return 0
-		bonus = 0
+		from draftleaguebot.scoring import doubles
 
-		if move_id in {"shadowsneak", "aquajet", "iceshard", "vacuumwave", "bulletpunch", "machpunch", "watershuriken"}:
-			bonus += self._weakness_policy_partner_bonus(battle, attacker, move, target)
-
-		if move_id == "fling":
-			bonus += self._fling_speed_bonus(battle, attacker, move, target)
-
-		if move_id in {"earthquake", "magnitude", "bulldoze"}:
-			bonus += self._earthquake_partner_bonus(battle)
-
-		return bonus
+		return doubles.apply_doubles_damage_bonuses(self, battle, attacker, move, target)
 
 	def _is_offense_drop_damage_move(self, move):
 		move_id = getattr(move, "id", None)
@@ -1091,28 +1058,14 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 		return move_target in {Target.ALL_ADJACENT_FOES, Target.ALL_ADJACENT, Target.ALL}
 
 	def _weakness_policy_partner_bonus(self, battle, attacker, move, target):
-		partner = self._get_partner(battle, attacker)
-		if partner is None or target is None:
-			return 0
-		if partner.item != "weaknesspolicy":
-			return 0
-		if target is not partner:
-			return 0
-		if self._is_super_effective_on_target(move, partner):
-			return 12
-		return 0
+		from draftleaguebot.scoring import doubles
+
+		return doubles.weakness_policy_partner_bonus(self, battle, attacker, move, target)
 
 	def _fling_speed_bonus(self, battle, attacker, move, target):
-		partner = self._get_partner(battle, attacker)
-		if partner is None or target is None:
-			return 0
-		if target is not partner:
-			return 0
-		if attacker.item not in {"salacberry"}:
-			return 0
-		if partner.item == "weaknesspolicy" and self._is_super_effective_on_target(move, partner):
-			return 12
-		return 9
+		from draftleaguebot.scoring import doubles
+
+		return doubles.fling_speed_bonus(self, battle, attacker, move, target)
 
 	def _candidate_targets(self, battle, attacker, move, opponents):
 		from draftleaguebot.mechanics import targets
@@ -1152,38 +1105,14 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 		return targets.is_partner(battle, attacker, target)
 
 	def _earthquake_partner_bonus(self, battle):
-		attacker = None
-		active = battle.active_pokemon
-		if isinstance(active, list) and active:
-			attacker = active[0]
-		elif active is not None:
-			attacker = active
-		partner = self._get_partner(battle, attacker) if attacker is not None else None
-		if partner is None:
-			return 0
+		from draftleaguebot.scoring import doubles
 
-		partner_immune = self._is_immune_to_ground(partner)
-		partner_levitating = Effect.MAGNET_RISE in getattr(partner, "effects", {})
-		partner_faster = False
-		if attacker is not None:
-			partner_faster = self._is_faster(partner, attacker)
-
-		if partner_immune or (partner_levitating and partner_faster):
-			return 2
-
-		if self._has_any_type(partner, {PokemonType.FIRE, PokemonType.POISON, PokemonType.ELECTRIC, PokemonType.ROCK}):
-			return -10
-		return -3
+		return doubles.earthquake_partner_bonus(self, battle)
 
 	def _is_immune_to_ground(self, pokemon):
-		try:
-			if getattr(pokemon, "ability", None) == "levitate":
-				return True
-			if getattr(pokemon, "item", None) == "airballoon":
-				return True
-			return pokemon.damage_multiplier(PokemonType.GROUND) == 0
-		except Exception:
-			return False
+		from draftleaguebot.scoring import doubles
+
+		return doubles.is_immune_to_ground(pokemon)
 
 	def _is_immune_to_move(self, battle, move, target):
 		from draftleaguebot.mechanics import effects

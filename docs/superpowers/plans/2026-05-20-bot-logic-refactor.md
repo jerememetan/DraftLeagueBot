@@ -536,7 +536,7 @@ Move status/support methods from `bot_logic.py` to `scoring/status.py`. Keep wra
 
 Move setup and boost-related scoring from `bot_logic.py` to `scoring/setup.py`.
 
-- [ ] **Step 6: Move doubles rules**
+- [x] **Step 6: Move doubles rules**
 
 Move partner interaction scoring from `bot_logic.py` to `scoring/doubles.py`.
 

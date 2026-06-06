@@ -1,3 +1,6 @@
+from draftleaguebot.scoring import doubles
+
+
 def score_damaging_move(context, battle, attacker, move, target, opponents, attacker_moves):
     """Score one damaging move-target candidate."""
     if context._is_immune_to_move(battle, move, target):
@@ -56,5 +59,5 @@ def score_damaging_move(context, battle, attacker, move, target, opponents, atta
     if context._is_contrary_setup_attack(attacker, move, highest_damage, damage, target):
         score += context._score_contrary_setup(attacker, target, move)
 
-    score += context._apply_doubles_damage_bonuses(battle, attacker, move, target)
+    score += doubles.apply_doubles_damage_bonuses(context, battle, attacker, move, target)
     return score

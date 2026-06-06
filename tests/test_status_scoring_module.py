@@ -39,7 +39,8 @@ def test_score_status_move_routes_tailwind_to_context_helper():
 def test_score_status_move_blocks_helping_hand_when_partner_uses_support():
     from draftleaguebot.scoring import status
 
-    context = SimpleNamespace(_partner_using_support_or_status=lambda _battle, _attacker: True)
+    partner = SimpleNamespace(last_move=SimpleNamespace(id="followme", category=None))
+    context = SimpleNamespace(_get_partner=lambda _battle, _attacker: partner)
     expected = -20
 
     result = status.score_status_move(
