@@ -130,6 +130,7 @@ def setup_synergy_bonus(attacker, move):
         bonus += 1
     return bonus
 
+
 def score_clangorous_soul(context, battle, attacker, target):
     """Score Clangorous Soul using all-stat payoff versus HP-loss risk."""
     if context._is_incapacitated(target):
@@ -196,7 +197,7 @@ def is_special_setup(move):
 
 def is_defensive_setup(move):
     """Return whether a setup move primarily boosts defenses."""
-    return move.id in {"barrier", "acidarmor", "irondefense", "cottonguard", "harden", "stockpile", "cosmicpower","withdraw","acupressure","shelter"}
+    return move.id in {"barrier", "acidarmor", "irondefense", "cottonguard", "harden", "stockpile", "cosmicpower","withdraw","acupressure","shelter", "defendorder"}
 
 
 def is_mixed_setup(move):
