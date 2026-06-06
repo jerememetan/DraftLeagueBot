@@ -36,15 +36,13 @@ def test_score_status_move_routes_tailwind_to_context_helper():
     assert result == expected
 
 
-def test_score_status_move_blocks_helping_hand_when_partner_uses_support():
+def test_score_status_move_scores_helping_hand_without_last_turn_penalty():
     from draftleaguebot.scoring import status
 
-    partner = SimpleNamespace(last_move=SimpleNamespace(id="followme", category=None))
-    context = SimpleNamespace(_get_partner=lambda _battle, _attacker: partner)
-    expected = -20
+    expected = 6
 
     result = status.score_status_move(
-        context,
+        SimpleNamespace(),
         battle=SimpleNamespace(),
         attacker=SimpleNamespace(),
         move=SimpleNamespace(id="helpinghand"),

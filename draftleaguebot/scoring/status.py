@@ -14,8 +14,6 @@ def score_status_move(context, battle, attacker, move, target, opponents):
         return context._score_trick_room(battle)
 
     if move_id in {"helpinghand", "followme"}:
-        if doubles.partner_using_support_or_status(context, battle, attacker):
-            return -20
         return 6
 
     if move_id == "coaching":

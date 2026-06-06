@@ -97,3 +97,51 @@ def test_apply_doubles_damage_bonuses_routes_ground_spread_moves():
     )
 
     assert result == expected
+
+
+def test_same_turn_support_conflict_blocks_second_support_move():
+    from draftleaguebot.scoring import doubles
+
+    selected_moves = [SimpleNamespace(id="helpinghand")]
+    context = SimpleNamespace(_is_damaging=lambda _move: False)
+    expected = True
+
+    result = doubles.same_turn_support_conflict(context, SimpleNamespace(id="helpinghand"), selected_moves)
+
+    assert result == expected
+
+
+def test_same_turn_support_conflict_allows_two_non_helping_hand_status_moves():
+    from draftleaguebot.scoring import doubles
+
+    selected_moves = [SimpleNamespace(id="tailwind")]
+    context = SimpleNamespace(_is_damaging=lambda _move: False)
+    expected = False
+
+    result = doubles.same_turn_support_conflict(context, SimpleNamespace(id="protect"), selected_moves)
+
+    assert result == expected
+
+
+def test_same_turn_support_conflict_allows_damaging_move_after_helping_hand():
+    from draftleaguebot.scoring import doubles
+
+    selected_moves = [SimpleNamespace(id="helpinghand")]
+    context = SimpleNamespace(_is_damaging=lambda move: getattr(move, "base_power", 0) > 0)
+    expected = False
+
+    result = doubles.same_turn_support_conflict(context, SimpleNamespace(id="tackle", base_power=40), selected_moves)
+
+    assert result == expected
+
+
+def test_same_turn_support_conflict_blocks_helping_hand_after_status_move():
+    from draftleaguebot.scoring import doubles
+
+    selected_moves = [SimpleNamespace(id="tailwind")]
+    context = SimpleNamespace(_is_damaging=lambda _move: False)
+    expected = True
+
+    result = doubles.same_turn_support_conflict(context, SimpleNamespace(id="helpinghand"), selected_moves)
+
+    assert result == expected

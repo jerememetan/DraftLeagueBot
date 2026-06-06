@@ -199,6 +199,36 @@ class BotLogicRegressionTests(unittest.TestCase):
 
         self.assertEqual(self.bot._score_trick_room(battle), self.TRICK_ROOM_BLOCKED_PENALTY)
 
+    def test_choose_move_prevents_both_slots_from_using_helping_hand(self):
+        attacker = self.make_pokemon(name="attacker")
+        partner = self.make_pokemon(name="partner")
+        foe = self.make_pokemon(name="foe")
+        helping_hand_1 = self.make_move("helpinghand")
+        helping_hand_2 = self.make_move("helpinghand")
+        tackle = self.make_move("tackle", base_power=40, category="physical")
+        battle = DummyBattle(active_pokemon=[attacker, partner], opponent_active_pokemon=[foe])
+        battle.available_moves = [[helping_hand_1], [helping_hand_2, tackle]]
+        battle.can_mega_evolve = [False, False]
+        battle.used_mega_evolve = False
+
+        self.bot._get_active_slots = lambda _battle: [
+            (0, attacker, [helping_hand_1]),
+            (1, partner, [helping_hand_2, tackle]),
+        ]
+        self.bot._candidate_targets = lambda _battle, active, move, _opponents: [
+            partner if active is attacker else attacker
+        ]
+        self.bot._score_move = lambda _battle, _attacker, move, _target, _opponents, _moves: (
+            10 if move.id == "helpinghand" else 1
+        )
+        self.bot._move_target_position = lambda _battle, _attacker, _move, _target: 1
+        self.bot.create_order = lambda move, **_kwargs: SimpleNamespace(order=move)
+
+        order = self.bot.choose_move(battle)
+
+        self.assertEqual(order.first_order.order.id, "helpinghand")
+        self.assertEqual(order.second_order.order.id, "tackle")
+
 
 if __name__ == "__main__":
     unittest.main()

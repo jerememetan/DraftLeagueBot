@@ -35,6 +35,7 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 			return self.choose_random_move(battle)
 
 		orders = []
+		selected_moves = []
 		for slot_index, attacker, moves in self._get_active_slots(battle):
 			if not moves:
 				order = self._fallback_order_for_slot(battle, slot_index)
@@ -49,6 +50,8 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 				targets = self._candidate_targets(battle, attacker, move, opponents)
 				for target in targets:
 					score = self._score_move(battle, attacker, move, target, opponents, moves)
+					if self._same_turn_support_conflict(move, selected_moves):
+						score = -20
 					scored.append((score, move, target))
 
 			if not scored:
@@ -60,6 +63,7 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 			best_score = max(s[0] for s in scored)
 			best = [s for s in scored if s[0] == best_score]
 			_, best_move, best_target = random.choice(best)
+			selected_moves.append(best_move)
 			if self._should_debug(battle):
 				self._log_decision(battle, slot_index, attacker, scored, best_move, best_target)
 
@@ -119,6 +123,11 @@ class DoublesMvpBot(MaxBasePowerPlayer):
 		from draftleaguebot.scoring import move_scorer
 
 		return move_scorer.score_move(self, battle, attacker, move, target, opponents, attacker_moves)
+
+	def _same_turn_support_conflict(self, move, selected_moves):
+		from draftleaguebot.scoring import doubles
+
+		return doubles.same_turn_support_conflict(self, move, selected_moves)
 
 	def _is_contrary_setup_attack(self, attacker, move, highest_damage, damage, target):
 		if getattr(attacker, "ability", None) != "contrary":

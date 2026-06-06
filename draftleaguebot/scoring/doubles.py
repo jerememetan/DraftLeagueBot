@@ -3,7 +3,6 @@ import random
 from poke_env.battle.effect import Effect
 from poke_env.battle.pokemon_type import PokemonType
 
-
 def score_coaching(context, battle, attacker, random_roll=None):
     """Score Coaching based on the active partner's boost value and ability."""
     partner = context._get_partner(battle, attacker)
@@ -38,6 +37,16 @@ def partner_using_support_or_status(context, battle, attacker):
         return True
     category = getattr(last_move, "category", None)
     return category is not None and category.name.lower() == "status"
+
+
+def same_turn_support_conflict(context, move, selected_moves):
+    """Return whether Helping Hand is paired with a non-damaging partner move."""
+    move_id = getattr(move, "id", None)
+    if move_id == "helpinghand":
+        return any(not context._is_damaging(selected) for selected in selected_moves)
+    if context._is_damaging(move):
+        return False
+    return any(getattr(selected, "id", None) == "helpinghand" for selected in selected_moves)
 
 
 def partner_has_hex(context, battle, attacker):
