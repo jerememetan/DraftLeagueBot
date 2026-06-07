@@ -1,7 +1,7 @@
 # Draft League Bot
 
 ## Requirements
-- Local Pokemon Showdown server -> dpwnload from https://github.com/smogon/pokemon-showdown (Open Source)
+- Local Pokemon Showdown server -> download from https://github.com/smogon/pokemon-showdown (Open Source)
 - Python 3.12+ with a virtual environment
 
 ## Setup
@@ -19,7 +19,7 @@ exports.noguestsecurity = true
 
 ## Run the Bot (Basic Version)
 From the DraftLeagueBot folder:
--> Prompts for etiher 4v4 doubles draft or reg M-A
+-> Prompts for either 4v4 doubles draft or reg M-A
 -> Prompts for Trainers Name to select
 -> Go to http://localhost:8000 , "Find a user" -> "Bot_Opponent" -> challenge
 
@@ -43,7 +43,7 @@ You can still force a format non-interactively:
 ```bash
 ".venv/Scripts/python.exe" test_bot.py --format-profile draft
 ".venv/Scripts/python.exe" test_bot.py --format-profile vgc-reg-ma
-".venv/Scripts/python.exe" test_bot.py --battle-format gen9vgc2026regma
+".venv/Scripts/python.exe" test_bot.py --battle-format gen9championsvgc2026regma
 ```
 
 Skip the prompt and use the resolved default format:
@@ -62,7 +62,7 @@ List the built-in profiles:
 Loads the team and exits (no battle):
 
 ```bash
-".venv/Scripts/python.exe" test_bot.py --preflight
+".venv/Scripts/python.exe" test_bot.py --preflight --no-format-prompt
 ```
 
 ## Team Selection

@@ -34,7 +34,7 @@ def prompt_for_battle_format():
                 custom_format = input("Enter custom battle format id: ").strip()
                 if custom_format:
                     return custom_format
-        print("❌ Invalid format choice. Please try again.")
+        print("[ERROR] Invalid format choice. Please try again.")
 
 
 def load_random_team_from_challenger(challenger_name, team_file=None):
@@ -42,7 +42,7 @@ def load_random_team_from_challenger(challenger_name, team_file=None):
     script_dir = Path(__file__).parent / "Trainers"
     challenger_folder = script_dir / challenger_name
     if not challenger_folder.exists():
-        print(f"❌ Challenger folder '{challenger_name}' does not exist!")
+        print(f"[ERROR] Challenger folder '{challenger_name}' does not exist!")
         return None
     requested_team_file = team_file
     if requested_team_file:
@@ -53,7 +53,7 @@ def load_random_team_from_challenger(challenger_name, team_file=None):
     else:
         team_files = list(challenger_folder.glob("*.txt"))
     if not team_files:
-        print(f"❌ No .txt team files found in '{challenger_name}' folder")
+        print(f"[ERROR] No .txt team files found in '{challenger_name}' folder")
         return None
     valid_teams = []
     for team_file in team_files:
@@ -63,17 +63,17 @@ def load_random_team_from_challenger(challenger_name, team_file=None):
                 if content:
                     valid_teams.append((team_file.name, content))
                 else:
-                    print(f"  ⚠️ Skipped empty file: {team_file.name}")
+                    print(f"  [WARN] Skipped empty file: {team_file.name}")
         except Exception as e:
-            print(f"  ❌ Error reading {team_file.name}: {e}")
+            print(f"  [ERROR] Error reading {team_file.name}: {e}")
     if not valid_teams:
-        print(f"❌ No valid teams found in '{challenger_name}' folder")
+        print(f"[ERROR] No valid teams found in '{challenger_name}' folder")
         return None
     if requested_team_file:
         selected_file, selected_team = valid_teams[0]    
     else:
         selected_file, selected_team = random.choice(valid_teams)
-    print(f"  ✅ Selected team: {selected_file} from {challenger_name}")
+    print(f"  [OK] Selected team: {selected_file} from {challenger_name}")
     return selected_team
 
 
@@ -144,7 +144,7 @@ async def main():
     available = list_available_challengers()
     
     if not available:
-        print("❌ No challenger folders found!")
+        print("[ERROR] No challenger folders found!")
         return
     
     print("==================================== ")
@@ -165,10 +165,10 @@ async def main():
             if selected_team:
                 break
         else:
-            print(f"❌ '{selected_trainer}' not found. Please try again.")
+            print(f"[ERROR] '{selected_trainer}' not found. Please try again.")
 
     if args.preflight:
-        print(f"✅ Preflight OK: team loaded and bot can be instantiated with '{resolved_battle_format}'.")
+        print(f"[OK] Preflight OK: team loaded and bot can be instantiated with '{resolved_battle_format}'.")
         return
     
     # Create bot
@@ -181,9 +181,9 @@ async def main():
         debug_turns=55
     )
     if args.debug:
-        print(f"✅ Bot Ready. Debugging enabled. Battle format: {resolved_battle_format}")
+        print(f"[OK] Bot Ready. Debugging enabled. Battle format: {resolved_battle_format}")
     else:
-        print(f"✅ Bot Ready. Battle format: {resolved_battle_format}")
+        print(f"[OK] Bot Ready. Battle format: {resolved_battle_format}")
     await bot.accept_challenges(None, 5)
 
 
