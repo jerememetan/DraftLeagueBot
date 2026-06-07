@@ -544,7 +544,7 @@ Move partner interaction scoring from `bot_logic.py` to `scoring/doubles.py`.
 
 Move Tailwind, Trick Room, speed profile, and damaging speed-control scoring from `bot_logic.py` to `scoring/speed_control.py`.
 
-- [ ] **Step 8: Run tests after each scoring module move**
+- [x] **Step 8: Run tests after each scoring module move**
 
 Run after each step above:
 
@@ -554,7 +554,7 @@ Run after each step above:
 
 Expected: PASS except the known file-size failure.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```powershell
 git add bot_logic.py draftleaguebot/scoring
