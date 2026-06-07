@@ -569,11 +569,11 @@ git commit -m "refactor: extract bot scoring modules"
 - Modify: `draftleaguebot/__init__.py`
 - Modify: `bot_logic.py`
 
-- [ ] **Step 1: Move the final `DoublesMvpBot` class to `draftleaguebot/bot.py`**
+- [x] **Step 1: Move the final `DoublesMvpBot` class to `draftleaguebot/bot.py`**
 
 `draftleaguebot/bot.py` should import `MaxBasePowerPlayer`, `DoubleBattleOrder`, `PassBattleOrder`, and the extracted helper modules. It should contain `DoublesMvpBot` with only orchestration and wrapper methods still needed by extracted scoring modules.
 
-- [ ] **Step 2: Replace `bot_logic.py` with the compatibility shim**
+- [x] **Step 2: Replace `bot_logic.py` with the compatibility shim**
 
 ```python
 from draftleaguebot.bot import DoublesMvpBot
