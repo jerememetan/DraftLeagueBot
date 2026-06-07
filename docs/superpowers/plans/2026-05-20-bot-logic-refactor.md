@@ -581,7 +581,7 @@ from draftleaguebot.bot import DoublesMvpBot
 __all__ = ["DoublesMvpBot"]
 ```
 
-- [ ] **Step 3: Confirm package export**
+- [x] **Step 3: Confirm package export**
 
 `draftleaguebot/__init__.py` should be:
 
@@ -591,7 +591,7 @@ from draftleaguebot.bot import DoublesMvpBot
 __all__ = ["DoublesMvpBot"]
 ```
 
-- [ ] **Step 4: Run import and file-size tests**
+- [x] **Step 4: Run import and file-size tests**
 
 Run:
 
@@ -601,7 +601,7 @@ Run:
 
 Expected: PASS.
 
-- [ ] **Step 5: Run the full test suite**
+- [x] **Step 5: Run the full test suite**
 
 Run:
 
