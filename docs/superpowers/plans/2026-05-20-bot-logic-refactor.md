@@ -611,7 +611,7 @@ Run:
 
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```powershell
 git add bot_logic.py draftleaguebot tests
@@ -626,7 +626,7 @@ git commit -m "refactor: move doubles bot into package"
 - Read: `AI_LOGIC_DOUBLES_MVP.txt`
 - Run: test suite
 
-- [ ] **Step 1: Run full tests**
+- [x] **Step 1: Run full tests**
 
 ```powershell
 .venv/Scripts/python.exe -m pytest
@@ -634,7 +634,7 @@ git commit -m "refactor: move doubles bot into package"
 
 Expected: PASS.
 
-- [ ] **Step 2: Run preflight if local dependencies are available**
+- [x] **Step 2: Run preflight if local dependencies are available**
 
 ```powershell
 .venv/Scripts/python.exe test_bot.py --preflight --no-format-prompt
@@ -642,7 +642,7 @@ Expected: PASS.
 
 Expected: The script prompts for trainer selection and can instantiate the bot after a valid trainer is selected.
 
-- [ ] **Step 3: Check file sizes manually**
+- [x] **Step 3: Check file sizes manually**
 
 ```powershell
 Get-ChildItem -Recurse -Filter *.py |
@@ -655,7 +655,7 @@ Get-ChildItem -Recurse -Filter *.py |
 
 Expected: No output.
 
-- [ ] **Step 4: Commit final documentation note if README is updated**
+- [x] **Step 4: Commit final documentation note if README is updated**
 
 If README gets an import-path note, commit it:
 

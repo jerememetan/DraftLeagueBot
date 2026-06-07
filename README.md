@@ -74,6 +74,14 @@ Loads the team and exits (no battle):
 The bot uses custom doubles-only scoring rules derived from `AI_LOGIC.txt`.
 See `AI_LOGIC_DOUBLES_MVP.txt` for the current implemented logic and remaining work.
 
+## Bot Package Layout
+`DoublesMvpBot` is exported from `draftleaguebot` and `draftleaguebot.bot`.
+The root `bot_logic.py` file remains as a compatibility shim, so older imports still work.
+
+Core bot orchestration lives in `draftleaguebot/bot.py`, bot wrapper mixins live in
+`draftleaguebot/bot_parts/`, battle mechanics live in `draftleaguebot/mechanics/`, and
+move scoring lives in `draftleaguebot/scoring/`.
+
 ## Adding new trainers
 Trainers can be added as new folders in /Trainers. To add teams in trainers, copy and paste your txt file of the pokepaste (refer to /Trainers/TESTER as reference)
 
