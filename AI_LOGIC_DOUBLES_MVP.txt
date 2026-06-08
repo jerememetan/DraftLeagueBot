@@ -62,14 +62,14 @@ Doubles-Specific Move Bonuses
     - If a safe weak hit activates partner Stamina: +3
     - For multi-hit moves, add +1 per extra expected hit, capped at +7 total
     - If one opposing active Pokemon is a physical attacker: +1
-    - If two opposing active Pokemon are physical attackers: +3
-    - If partner has Body Press: +2
+    - If two opposing active Pokemon are physical attackers: +4
+    - If partner has Body Press: +1
   - Water Compaction:
     - If a safe Water-type hit activates partner Water Compaction: +5
     - For multi-hit Water moves, add +2 per extra expected hit, capped at +9 total
     - If one opposing active Pokemon is a physical attacker: +1
-    - If two opposing active Pokemon are physical attackers: +3
-    - If partner has Body Press: +2
+    - If two opposing active Pokemon are physical attackers: +4
+    - If partner has Body Press: +1
   - Positive berry Fling:
     - If Fling gives partner a useful berry boost: +7
     - If the berry matches partner's role: +1
