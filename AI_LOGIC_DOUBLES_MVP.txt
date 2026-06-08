@@ -42,6 +42,38 @@ Doubles-Specific Move Bonuses
   - If Fling raises target speed and partner has Weakness Policy, and Fling is
     super-effective: +12
   - If Fling raises target speed without WP or not super-effective: +9
+- Self-hit partner boost combos:
+  - Only score intentional partner hits after safety checks pass.
+  - If estimated damage would KO partner: -20
+  - If estimated damage is at least 25% of partner HP: -20
+  - If estimated damage is at least 15% of partner HP: -6
+  - If partner is already at +6 in the boosted stat: -20
+  - If partner is already at +4 or higher in the boosted stat: -6
+  - Weakness Policy:
+    - If hitting partner super-effectively and partner has Weakness Policy: +12
+    - If partner can act this turn and is an offensive attacker: +2
+    - If partner has Stored Power or Power Trip: +2
+    - If partner is already heavily boosted in Atk or SpA: reduce by 4
+  - Stamina:
+    - If a safe weak hit activates partner Stamina: +4
+    - For multi-hit moves, add +2 per extra expected hit, capped at +10 total
+    - If one opposing active Pokemon is a physical attacker: +2
+    - If two opposing active Pokemon are physical attackers: +4
+    - If partner has Body Press: +2
+  - Water Compaction:
+    - If a safe Water-type hit activates partner Water Compaction: +7
+    - For multi-hit Water moves, add +3 per extra expected hit, capped at +13 total
+    - If one opposing active Pokemon is a physical attacker: +2
+    - If two opposing active Pokemon are physical attackers: +4
+    - If partner has Body Press: +2
+  - Positive berry Fling:
+    - If Fling gives partner a useful berry boost: +9
+    - If the berry matches partner's role: +2
+    - If Fling also safely triggers Stamina or Water Compaction: +3
+    - If Fling also triggers Weakness Policy, use the Weakness Policy score path
+      instead of stacking both full bonuses.
+  - Cap the final self-hit combo bonus at +14 unless the combo also creates an
+    immediate KO or prevents an immediate KO.
 - Magnitude / Earthquake partner check:
   - Partner not grounded or using Magnet Rise and faster: +2
   - Partner will be hit and is Fire/Poison/Electric/Rock: -10
@@ -125,4 +157,6 @@ Recent Additions (since last update)
 - Added Memento, Final Gambit, and Destiny Bond logic.
 
 Remaining / Not Yet Implemented
-- None currently listed.
+- Self-hit partner boost combos for Stamina, Water Compaction, positive berry
+  Fling, expanded Weakness Policy synergy, physical-attacker board pressure, and
+  boost-conversion synergy with Body Press / Stored Power / Power Trip.
