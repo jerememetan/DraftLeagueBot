@@ -31,12 +31,9 @@
 - `context._has_move_id(partner, "bodypress")`
 - `context._has_move_id(partner, "storedpower")`
 - `context._has_move_id(partner, "powertrip")`
-- `context._has_physical_move(opponent)`
-- `context._has_special_move(opponent)`
-
-For physical board pressure, use revealed move categories when available, then
-fall back to visible stats. This matters in draft league because turn 1 may not
-have reliable opponent move information yet.
+For physical board pressure, use visible stats instead of revealed move
+categories. This matters in draft league because turn 1 may not have reliable
+opponent move information yet.
 
 ## Multi-Hit Scoring Policy
 
@@ -231,7 +228,7 @@ git commit -m "feat: add self-hit combo safety scoring"
 - Modify: `tests/test_self_hit_scoring_module.py`
 - Modify: `draftleaguebot/scoring/self_hit.py`
 
-- [ ] **Step 1: Add failing Stamina expected-score tests**
+- [x] **Step 1: Add failing Stamina expected-score tests**
 
 Append:
 
@@ -306,7 +303,7 @@ def test_beat_up_is_not_treated_as_generic_multi_hit():
     assert result == expected
 
 
-def test_physical_pressure_falls_back_to_attack_stat_when_moves_unknown():
+def test_physical_pressure_uses_attack_stat_when_moves_unknown():
     from draftleaguebot.scoring import self_hit
 
     context = make_context(partner=SimpleNamespace(), damage=0)
@@ -317,9 +314,24 @@ def test_physical_pressure_falls_back_to_attack_stat_when_moves_unknown():
     result = self_hit.physical_pressure_bonus(context, battle)
 
     assert result == expected
+
+
+def test_physical_pressure_uses_attack_stat_over_revealed_move_category():
+    from draftleaguebot.scoring import self_hit
+
+    context = make_context(partner=SimpleNamespace(), damage=0)
+    opponent = SimpleNamespace(moves={}, stats={"atk": 140, "spa": 100})
+    battle = SimpleNamespace(opponent_active_pokemon=[opponent])
+    context._has_physical_move = lambda _pokemon: False
+    context._has_special_move = lambda _pokemon: True
+    expected = 1
+
+    result = self_hit.physical_pressure_bonus(context, battle)
+
+    assert result == expected
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run:
 
@@ -329,7 +341,7 @@ Run:
 
 Expected: FAIL because positive Stamina scoring returns 0.
 
-- [ ] **Step 3: Implement Stamina scoring helpers**
+- [x] **Step 3: Implement Stamina scoring helpers**
 
 Update `draftleaguebot/scoring/self_hit.py`:
 
@@ -432,25 +444,14 @@ def has_guaranteed_five_hit_modifier(attacker):
 
 
 def physical_pressure_bonus(context, battle):
-    """Reward Defense boosts more when active opponents are physical attackers."""
+    """Reward Defense boosts more when active opponents lean physical."""
     opponents = [p for p in getattr(battle, "opponent_active_pokemon", []) if p is not None]
-    physical_count = sum(1 for opponent in opponents if opponent_is_physical_pressure(context, opponent))
+    physical_count = sum(1 for opponent in opponents if attack_stat_leans_physical(opponent))
     if physical_count >= 2:
         return 4
     if physical_count == 1:
         return 1
     return 0
-
-
-def opponent_is_physical_pressure(context, opponent):
-    """Return whether an opponent likely threatens with physical damage."""
-    has_physical = context._has_physical_move(opponent)
-    has_special = context._has_special_move(opponent)
-    if has_physical and not has_special:
-        return True
-    if has_special and not has_physical:
-        return False
-    return attack_stat_leans_physical(opponent)
 
 
 def attack_stat_leans_physical(opponent):
@@ -465,7 +466,7 @@ def attack_stat_leans_physical(opponent):
 
 Keep `self_hit_safety_score`, `move_is_water_type`, and `normalize_id` from Task 1.
 
-- [ ] **Step 4: Run Stamina tests**
+- [x] **Step 4: Run Stamina tests**
 
 Run:
 
@@ -475,7 +476,7 @@ Run:
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```powershell
 git add draftleaguebot/scoring/self_hit.py tests/test_self_hit_scoring_module.py

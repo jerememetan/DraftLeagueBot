@@ -27,8 +27,8 @@
 1. **Physical board pressure cannot rely only on revealed moves**
    - Missing: first-turn draft league board state may not expose opponent moves yet.
    - Why it matters: Stamina and Water Compaction would be under-scored into obvious physical attackers before moves are revealed.
-   - Existing pattern: Pokemon objects expose `stats`, and helper methods already inspect revealed moves when available.
-   - Default: use revealed move categories first, then fall back to Atk vs SpA. Count physical pressure when Attack is at least 10% higher than Special Attack.
+   - Existing pattern: Pokemon objects expose `stats` even when moves are unknown.
+   - Default: use Atk vs SpA. Count physical pressure when Attack is at least 10% higher than Special Attack.
 
 1. **Multi-hit count needs move-specific handling**
    - Missing: the first draft treated Beat Up, fixed-hit moves, and 2-5 hit moves as one generic table.

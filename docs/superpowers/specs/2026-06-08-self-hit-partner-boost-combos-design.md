@@ -20,16 +20,12 @@ Add conservative doubles scoring for intentional partner hits that activate usef
   - `context._estimated_kill(target, damage)`
   - `context._get_boost(partner, "def")`
   - `context._has_move_id(partner, "bodypress")`
-  - `context._has_physical_move(opponent)`
-  - `context._has_special_move(opponent)`
   - `context._is_super_effective_on_target(move, partner)`
 
-Opponent board pressure should prefer revealed move categories when available,
-then fall back to stats. Draft-league first turns may not expose moves yet, but
-Pokemon stats are usually available. Treat an opponent as physical pressure if
-it has physical revealed moves and no special revealed moves, or if its Attack
-is meaningfully higher than its Special Attack when revealed moves are unknown
-or mixed.
+Opponent board pressure should use stat profile, not revealed move categories.
+Draft-league first turns may not expose moves yet, but Pokemon stats are usually
+available. Treat an opponent as physical pressure if its Attack is meaningfully
+higher than its Special Attack.
 
 ## Architecture
 Create `draftleaguebot/scoring/self_hit.py` for self-hit combo scoring. Keep `doubles.py` as the integration point by importing this module inside `apply_doubles_damage_bonuses`.
