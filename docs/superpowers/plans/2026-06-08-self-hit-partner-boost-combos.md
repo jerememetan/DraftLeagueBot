@@ -52,7 +52,7 @@ have reliable opponent move information yet.
 **Files:**
 - Create: `tests/test_self_hit_scoring_module.py`
 
-- [ ] **Step 1: Write failing safety tests**
+- [x] **Step 1: Write failing safety tests**
 
 ```python
 from types import SimpleNamespace
@@ -67,7 +67,6 @@ def make_context(partner, damage):
         _has_move_id=lambda pokemon, move_id: move_id in getattr(pokemon, "moves", {}),
         _has_physical_move=lambda pokemon: False,
         _has_special_move=lambda pokemon: True,
-        _is_faster=lambda _attacker, _target: False,
     )
 
 
@@ -87,7 +86,7 @@ def test_self_hit_rejects_partner_ko():
     expected = -20
 
     result = self_hit.self_hit_partner_boost_bonus(
-        context, battle, attacker=SimpleNamespace(), move=move, target=partner, hit_roll=lambda: 3
+        context, battle, attacker=SimpleNamespace(), move=move, target=partner
     )
 
     assert result == expected
@@ -137,7 +136,7 @@ def test_self_hit_penalizes_damage_at_15_percent_of_partner_max_hp():
     assert result == expected
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run:
 
@@ -147,7 +146,7 @@ Run:
 
 Expected: FAIL with import error for `draftleaguebot.scoring.self_hit`.
 
-- [ ] **Step 3: Implement minimal safety module**
+- [x] **Step 3: Implement minimal safety module**
 
 Create `draftleaguebot/scoring/self_hit.py`:
 
@@ -209,7 +208,7 @@ def normalize_id(value):
     return str(value).replace(" ", "").replace("-", "").lower()
 ```
 
-- [ ] **Step 4: Run tests to verify safety passes**
+- [x] **Step 4: Run tests to verify safety passes**
 
 Run:
 
@@ -219,7 +218,7 @@ Run:
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```powershell
 git add draftleaguebot/scoring/self_hit.py tests/test_self_hit_scoring_module.py
