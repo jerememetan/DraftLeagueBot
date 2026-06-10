@@ -698,7 +698,7 @@ git commit -m "feat: route self-hit partner boost scoring"
 - Read: `AI_LOGIC_DOUBLES_MVP.txt`
 - Run: test suite
 
-- [ ] **Step 1: Run targeted scoring tests**
+- [x] **Step 1: Run targeted scoring tests**
 
 ```powershell
 .venv/Scripts/python.exe -m pytest tests/test_self_hit_scoring_module.py tests/test_doubles_scoring_module.py tests/test_damage_scoring_module.py -v
@@ -706,7 +706,7 @@ git commit -m "feat: route self-hit partner boost scoring"
 
 Expected: PASS.
 
-- [ ] **Step 2: Run file size check**
+- [x] **Step 2: Run file size check**
 
 ```powershell
 Get-ChildItem -Recurse -Filter *.py |
@@ -719,7 +719,7 @@ Get-ChildItem -Recurse -Filter *.py |
 
 Expected: No output.
 
-- [ ] **Step 3: Run full tests in two batches if one-shot pytest is slow**
+- [x] **Step 3: Run full tests in two batches if one-shot pytest is slow**
 
 ```powershell
 .venv/Scripts/python.exe -m pytest tests/test_bot_logic_regression.py tests/test_damage_calc.py tests/test_damage_estimation.py tests/test_damage_scoring_module.py tests/test_damaging_move_scoring.py tests/test_debug_helpers.py tests/test_doubles_scoring_module.py tests/test_doubles_specific.py tests/test_effects.py tests/test_file_size_limits.py tests/test_import_contract.py -v
@@ -729,7 +729,7 @@ Expected: No output.
 
 Expected: PASS.
 
-- [ ] **Step 4: Confirm docs match implementation scope**
+- [x] **Step 4: Confirm docs match implementation scope**
 
 Read `AI_LOGIC_DOUBLES_MVP.txt` and verify `Remaining / Not Yet Implemented` is updated after implementation. If the listed self-hit combo rules are implemented, change the remaining note to:
 

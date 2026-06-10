@@ -38,7 +38,10 @@ VARIABLE_TWO_TO_FIVE_HIT_MOVES = {
 
 def self_hit_partner_boost_bonus(context, battle, attacker, move, target, hit_roll=None):
     """Score intentional partner hits that activate beneficial partner effects."""
-    partner = context._get_partner(battle, attacker)
+    get_partner = getattr(context, "_get_partner", None)
+    if get_partner is None:
+        return 0
+    partner = get_partner(battle, attacker)
     if partner is None or target is not partner:
         return 0
 
