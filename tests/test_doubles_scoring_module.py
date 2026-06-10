@@ -99,6 +99,39 @@ def test_apply_doubles_damage_bonuses_routes_ground_spread_moves():
     assert result == expected
 
 
+def test_apply_doubles_damage_bonuses_routes_stamina_partner_self_hit():
+    from draftleaguebot.scoring import doubles
+
+    partner = SimpleNamespace(
+        ability="stamina",
+        item=None,
+        current_hp=100,
+        max_hp=100,
+        boosts={"def": 0},
+        moves={},
+    )
+    context = SimpleNamespace(
+        _get_partner=lambda _battle, _attacker: partner,
+        _estimate_damage=lambda _battle, _attacker, _move, _target, use_max_roll=False: 5,
+        _estimated_kill=lambda _target, _damage: False,
+        _get_boost=lambda pokemon, stat: pokemon.boosts.get(stat, 0),
+        _has_move_id=lambda pokemon, move_id: move_id in getattr(pokemon, "moves", {}),
+        _is_super_effective_on_target=lambda _move, _target: False,
+    )
+    battle = SimpleNamespace(opponent_active_pokemon=[])
+    expected = 3
+
+    result = doubles.apply_doubles_damage_bonuses(
+        context,
+        battle=battle,
+        attacker=SimpleNamespace(moves={}),
+        move=SimpleNamespace(id="tackle", type="Normal"),
+        target=partner,
+    )
+
+    assert result == expected
+
+
 def test_same_turn_support_conflict_blocks_second_support_move():
     from draftleaguebot.scoring import doubles
 

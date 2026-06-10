@@ -217,7 +217,7 @@ Run:
 
 Expected: PASS.
 
-- [x] **Step 5: Commit**
+- [ ] **Step 5: Commit**
 
 ```powershell
 git add draftleaguebot/scoring/self_hit.py tests/test_self_hit_scoring_module.py
@@ -479,7 +479,7 @@ Run:
 
 Expected: PASS.
 
-- [x] **Step 5: Commit**
+- [ ] **Step 5: Commit**
 
 ```powershell
 git add draftleaguebot/scoring/self_hit.py tests/test_self_hit_scoring_module.py
@@ -596,7 +596,7 @@ Run:
 
 Expected: PASS.
 
-- [x] **Step 5: Commit**
+- [ ] **Step 5: Commit**
 
 ```powershell
 git add draftleaguebot/scoring/self_hit.py tests/test_self_hit_scoring_module.py
@@ -610,7 +610,7 @@ git commit -m "feat: score water compaction partner self-hit combos"
 - Modify: `draftleaguebot/scoring/doubles.py`
 - Modify: `tests/test_doubles_scoring_module.py`
 
-- [ ] **Step 1: Add failing routing test**
+- [x] **Step 1: Add failing routing test**
 
 Append to `tests/test_doubles_scoring_module.py`:
 
@@ -632,8 +632,6 @@ def test_apply_doubles_damage_bonuses_routes_stamina_partner_self_hit():
         _estimated_kill=lambda _target, _damage: False,
         _get_boost=lambda pokemon, stat: pokemon.boosts.get(stat, 0),
         _has_move_id=lambda pokemon, move_id: move_id in getattr(pokemon, "moves", {}),
-        _has_physical_move=lambda _pokemon: False,
-        _has_special_move=lambda _pokemon: True,
         _is_super_effective_on_target=lambda _move, _target: False,
     )
     battle = SimpleNamespace(opponent_active_pokemon=[])
@@ -643,14 +641,14 @@ def test_apply_doubles_damage_bonuses_routes_stamina_partner_self_hit():
         context,
         battle=battle,
         attacker=SimpleNamespace(moves={}),
-        move=SimpleNamespace(id="pinmissile", type="Bug"),
+        move=SimpleNamespace(id="tackle", type="Normal"),
         target=partner,
     )
 
     assert result == expected
 ```
 
-- [ ] **Step 2: Run routing test to verify it fails**
+- [x] **Step 2: Run routing test to verify it fails**
 
 Run:
 
@@ -660,7 +658,7 @@ Run:
 
 Expected: FAIL because `apply_doubles_damage_bonuses` does not call `self_hit`.
 
-- [ ] **Step 3: Wire module into `doubles.py`**
+- [x] **Step 3: Wire module into `doubles.py`**
 
 Modify `draftleaguebot/scoring/doubles.py`:
 
@@ -676,7 +674,7 @@ In `apply_doubles_damage_bonuses`, after existing move-specific bonus checks:
 
 Keep the existing Fling branch in place. The self-hit module should return `0` for Salac-only Fling unless Stamina or Water Compaction also applies.
 
-- [ ] **Step 4: Run routing and existing doubles tests**
+- [x] **Step 4: Run routing and existing doubles tests**
 
 Run:
 
@@ -686,7 +684,7 @@ Run:
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```powershell
 git add draftleaguebot/scoring/doubles.py tests/test_doubles_scoring_module.py

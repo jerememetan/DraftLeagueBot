@@ -2,6 +2,7 @@ import random
 
 from poke_env.battle.effect import Effect
 from poke_env.battle.pokemon_type import PokemonType
+from draftleaguebot.scoring import self_hit
 
 def score_coaching(context, battle, attacker, random_roll=None):
     """Score Coaching based on the active partner's boost value and ability."""
@@ -70,6 +71,7 @@ def apply_doubles_damage_bonuses(context, battle, attacker, move, target):
         bonus += fling_speed_bonus(context, battle, attacker, move, target)
     if move_id in {"earthquake", "magnitude", "bulldoze"}:
         bonus += earthquake_partner_bonus(context, battle)
+    bonus += self_hit.self_hit_partner_boost_bonus(context, battle, attacker, move, target)
     return bonus
 
 
