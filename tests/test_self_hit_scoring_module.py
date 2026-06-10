@@ -180,3 +180,54 @@ def test_physical_pressure_uses_attack_stat_over_revealed_move_category():
     result = self_hit.physical_pressure_bonus(context, battle)
 
     assert result == expected
+
+
+def test_water_compaction_requires_water_type_move():
+    from draftleaguebot.scoring import self_hit
+
+    partner = SimpleNamespace(
+        ability="watercompaction",
+        current_hp=100,
+        max_hp=100,
+        boosts={"def": 0},
+        moves={},
+    )
+    context = make_context(partner, damage=5)
+    battle = SimpleNamespace(opponent_active_pokemon=[])
+    move = SimpleNamespace(id="pinmissile", type="Bug")
+    expected = 0
+
+    result = self_hit.self_hit_partner_boost_bonus(
+        context, battle, attacker=SimpleNamespace(), move=move, target=partner
+    )
+
+    assert result == expected
+
+
+def test_water_compaction_scores_safe_multi_hit_water_move():
+    from draftleaguebot.scoring import self_hit
+
+    partner = SimpleNamespace(
+        ability="watercompaction",
+        current_hp=100,
+        max_hp=100,
+        boosts={"def": 0},
+        moves={"bodypress": SimpleNamespace()},
+    )
+    physical_1 = SimpleNamespace(moves={}, stats={"atk": 150, "spa": 90})
+    physical_2 = SimpleNamespace(moves={}, stats={"atk": 130, "spa": 80})
+    context = make_context(partner, damage=5)
+    battle = SimpleNamespace(opponent_active_pokemon=[physical_1, physical_2])
+    move = SimpleNamespace(id="watershuriken", type="Water")
+    expected = 12
+
+    result = self_hit.self_hit_partner_boost_bonus(
+        context,
+        battle,
+        attacker=SimpleNamespace(),
+        move=move,
+        target=partner,
+        hit_roll=lambda: 3,
+    )
+
+    assert result == expected

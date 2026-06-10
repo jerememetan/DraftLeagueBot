@@ -42,6 +42,7 @@ opponent move information yet.
 - Normal variable 2-5 hit moves use a controlled 2-5 RNG roll for scoring.
 - Tests inject a fixed roll into `expected_hit_count(...)` so assertions stay deterministic.
 - Beat Up is treated as `1` hit for the first implementation because its hit count depends on remaining healthy party members.
+- Future follow-up: make Beat Up team-aware by counting healthy remaining party members.
 - Triple Axel, Triple Kick, and Population Bomb are treated as `1` hit for this first implementation because they need accuracy-aware scoring before they can safely receive full combo value.
 
 ### Task 1: Add Safety Gate Tests
@@ -489,7 +490,7 @@ git commit -m "feat: score stamina partner self-hit combos"
 - Modify: `tests/test_self_hit_scoring_module.py`
 - Modify: `draftleaguebot/scoring/self_hit.py`
 
-- [ ] **Step 1: Add failing Water Compaction tests**
+- [x] **Step 1: Add failing Water Compaction tests**
 
 Append:
 
@@ -510,7 +511,12 @@ def test_water_compaction_requires_water_type_move():
     expected = 0
 
     result = self_hit.self_hit_partner_boost_bonus(
-        context, battle, attacker=SimpleNamespace(), move=move, target=partner
+        context,
+        battle,
+        attacker=SimpleNamespace(),
+        move=move,
+        target=partner,
+        hit_roll=lambda: 3,
     )
 
     assert result == expected
@@ -540,7 +546,7 @@ def test_water_compaction_scores_safe_multi_hit_water_move():
     assert result == expected
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run:
 
@@ -550,7 +556,7 @@ Run:
 
 Expected: FAIL because Water Compaction positive scoring is not implemented.
 
-- [ ] **Step 3: Implement Water Compaction scoring**
+- [x] **Step 3: Implement Water Compaction scoring**
 
 Update `self_hit_partner_boost_bonus` branch:
 
@@ -577,7 +583,7 @@ def score_water_compaction_combo(context, battle, attacker, partner, move, hit_r
     return min(score, 12)
 ```
 
-- [ ] **Step 4: Run Water Compaction tests**
+- [x] **Step 4: Run Water Compaction tests**
 
 Run:
 

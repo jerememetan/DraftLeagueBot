@@ -52,6 +52,10 @@ def self_hit_partner_boost_bonus(context, battle, attacker, move, target, hit_ro
 
     if combo == "stamina":
         return score_stamina_combo(context, battle, attacker, partner, move, hit_roll=hit_roll)
+    if combo == "watercompaction":
+        return score_water_compaction_combo(
+            context, battle, attacker, partner, move, hit_roll=hit_roll
+        )
     return 0
 
 
@@ -74,6 +78,17 @@ def score_stamina_combo(context, battle, attacker, partner, move, hit_roll=None)
     if context._has_move_id(partner, "bodypress"):
         score += 1
     return min(score, 10)
+
+
+def score_water_compaction_combo(context, battle, attacker, partner, move, hit_roll=None):
+    """Score a safe Water Compaction activation against the current board."""
+    score = 5
+    extra_hits = max(expected_hit_count(move, attacker, hit_roll=hit_roll) - 1, 0)
+    score += min(extra_hits * 2, 4)
+    score += physical_pressure_bonus(context, battle)
+    if context._has_move_id(partner, "bodypress"):
+        score += 1
+    return min(score, 12)
 
 
 def expected_hit_count(move, attacker, hit_roll=None):
