@@ -31,9 +31,9 @@
 - `context._has_move_id(partner, "bodypress")`
 - `context._has_move_id(partner, "storedpower")`
 - `context._has_move_id(partner, "powertrip")`
-For physical board pressure, use visible stats instead of revealed move
-categories. This matters in draft league because turn 1 may not have reliable
-opponent move information yet.
+  For physical board pressure, use visible stats instead of revealed move
+  categories. This matters in draft league because turn 1 may not have reliable
+  opponent move information yet.
 
 ## Multi-Hit Scoring Policy
 
@@ -48,6 +48,7 @@ opponent move information yet.
 ### Task 1: Add Safety Gate Tests
 
 **Files:**
+
 - Create: `tests/test_self_hit_scoring_module.py`
 
 - [x] **Step 1: Write failing safety tests**
@@ -226,6 +227,7 @@ git commit -m "feat: add self-hit combo safety scoring"
 ### Task 2: Add Stamina Scoring
 
 **Files:**
+
 - Modify: `tests/test_self_hit_scoring_module.py`
 - Modify: `draftleaguebot/scoring/self_hit.py`
 
@@ -487,6 +489,7 @@ git commit -m "feat: score stamina partner self-hit combos"
 ### Task 3: Add Water Compaction Scoring
 
 **Files:**
+
 - Modify: `tests/test_self_hit_scoring_module.py`
 - Modify: `draftleaguebot/scoring/self_hit.py`
 
@@ -593,7 +596,7 @@ Run:
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```powershell
 git add draftleaguebot/scoring/self_hit.py tests/test_self_hit_scoring_module.py
@@ -603,6 +606,7 @@ git commit -m "feat: score water compaction partner self-hit combos"
 ### Task 4: Wire Self-Hit Scoring Into Doubles Bonuses
 
 **Files:**
+
 - Modify: `draftleaguebot/scoring/doubles.py`
 - Modify: `tests/test_doubles_scoring_module.py`
 
@@ -692,6 +696,7 @@ git commit -m "feat: route self-hit partner boost scoring"
 ### Task 5: Final Verification
 
 **Files:**
+
 - Read: `AI_LOGIC_DOUBLES_MVP.txt`
 - Run: test suite
 
