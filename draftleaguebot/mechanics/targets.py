@@ -63,7 +63,7 @@ def move_allows_ally(move_target, move):
     """Return whether this move target mode can select an ally."""
     if move_target in {Target.ADJACENT_ALLY, Target.ADJACENT_ALLY_OR_SELF, Target.SELF}:
         return True
-    if move_target == Target.ANY:
+    if move_target in {Target.NORMAL, Target.ANY}:
         return ally_target_allowed(move)
     return False
 

@@ -33,6 +33,19 @@ def test_candidate_targets_includes_partner_when_ally_target_is_allowed():
     ]
 
 
+def test_candidate_targets_includes_partner_for_allowed_normal_target_move():
+    attacker = SimpleNamespace(name="attacker")
+    partner = SimpleNamespace(name="partner")
+    opponent = SimpleNamespace(name="foe")
+    battle = SimpleNamespace(active_pokemon=[attacker, partner])
+    move = SimpleNamespace(id="watershuriken", target=Target.NORMAL, deduced_target=Target.NORMAL)
+
+    assert targets.candidate_targets(battle, attacker, move, [opponent], setup_move_ids=set()) == [
+        opponent,
+        partner,
+    ]
+
+
 def test_candidate_targets_scores_spread_foe_moves_against_opponents():
     attacker = SimpleNamespace(name="attacker")
     opponents = [SimpleNamespace(name="foe-1"), SimpleNamespace(name="foe-2")]
