@@ -104,6 +104,8 @@ class StatusHelpersMixin:
 
 	def _score_wisp(self, battle, attacker, target):
 		score = 6
+		if self._has_type_name(target, "fire"):
+			return -20
 		if random.random() < 0.37:
 			if self._has_physical_move(target):
 				score += 1
