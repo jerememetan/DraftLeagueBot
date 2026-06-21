@@ -242,3 +242,39 @@ class TestParalysisMovesDoubles(unittest.TestCase):
         
         # Should tend toward encouraged score (8) with 50% penalty applied sometimes
         self.assertGreater(avg_score, self.BASE_PARALYSIS_SCORE - 1)
+
+    def test_paralysis_rejected_against_electric_type(self):
+        """Electric-type targets cannot be paralyzed."""
+        attacker = DummyPokemon("Para user", stats={
+            "hp": 100, "atk": 100, "def": 100, "spa": 100, "spd": 100, "spe": 80
+        })
+        target = DummyPokemon("Electric target", types=["Electric"], stats={
+            "hp": 100, "atk": 100, "def": 100, "spa": 100, "spd": 100, "spe": 100
+        })
+        expected = -20
+
+        score = self.bot._score_paralysis(attacker, target)
+
+        self.assertEqual(score, expected)
+
+
+class TestBurnMovesDoubles(unittest.TestCase):
+    """Tests for burn moves with type immunity checks."""
+
+    def setUp(self):
+        self.bot = DoublesMvpBot()
+        self.battle = DummyBattle()
+
+    def test_will_o_wisp_rejected_against_fire_type(self):
+        """Fire-type targets cannot be burned."""
+        attacker = DummyPokemon("Wisp user", stats={
+            "hp": 100, "atk": 100, "def": 100, "spa": 100, "spd": 100, "spe": 80
+        })
+        target = DummyPokemon("Fire target", types=["Fire"], stats={
+            "hp": 100, "atk": 100, "def": 100, "spa": 100, "spd": 100, "spe": 100
+        })
+        expected = -20
+
+        score = self.bot._score_wisp(self.battle, attacker, target)
+
+        self.assertEqual(score, expected)

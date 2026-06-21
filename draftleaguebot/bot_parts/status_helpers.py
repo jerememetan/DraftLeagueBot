@@ -76,6 +76,8 @@ class StatusHelpersMixin:
 	def _score_paralysis(self, attacker, target):
 		if target is None:
 			return 0
+		if self._has_type_name(target, "electric"):
+			return -20
 		attacker_speed = self._safe_speed(attacker)
 		target_speed = self._safe_speed(target)
 		faster_then_slow = target_speed > attacker_speed and (target_speed / 4) < attacker_speed
@@ -89,6 +91,15 @@ class StatusHelpersMixin:
 		if random.random() < 0.5:
 			score -= 1
 		return score
+
+
+	def _has_type_name(self, pokemon, type_name):
+		target_name = type_name.lower()
+		for pokemon_type in getattr(pokemon, "types", []) or []:
+			value = getattr(pokemon_type, "name", None) or getattr(pokemon_type, "value", None) or pokemon_type
+			if str(value).lower() == target_name:
+				return True
+		return False
 
 
 	def _score_wisp(self, battle, attacker, target):
