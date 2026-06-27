@@ -32,7 +32,15 @@ class DoublesMvpBot(DamageRulesMixin, StateOrderMixin, StatusCoreMixin, FieldSup
 
 
 	def choose_move(self, battle):
-		# Forced switch handling (Perish Song) can be added here once battle effects are exposed.
+		forced_switch_order = self._forced_switch_order(battle)
+		if forced_switch_order is not None:
+			if self._should_debug(battle):
+				self._log_final_orders([
+					forced_switch_order.first_order,
+					forced_switch_order.second_order,
+				])
+			return forced_switch_order
+
 		if not battle.available_moves:
 			return self.choose_random_move(battle)
 
@@ -127,6 +135,43 @@ class DoublesMvpBot(DamageRulesMixin, StateOrderMixin, StatusCoreMixin, FieldSup
 		from draftleaguebot import debug as debug_helpers
 
 		debug_helpers.log_final_orders(orders)
+
+
+	def _forced_switch_order(self, battle):
+		force_switch = getattr(battle, "force_switch", None)
+		if not isinstance(force_switch, list) or not any(force_switch):
+			return None
+
+		orders = []
+		selected_switches = []
+		for slot_index in range(2):
+			if slot_index < len(force_switch) and force_switch[slot_index]:
+				switch = self._forced_switch_for_slot(battle, slot_index, selected_switches)
+				if switch is None:
+					orders.append(PassBattleOrder())
+				else:
+					selected_switches.append(switch)
+					orders.append(self.create_order(switch))
+			else:
+				orders.append(PassBattleOrder())
+		return DoubleBattleOrder(first_order=orders[0], second_order=orders[1])
+
+
+	def _forced_switch_for_slot(self, battle, slot_index, selected_switches):
+		available_switches = getattr(battle, "available_switches", None)
+		if isinstance(available_switches, list):
+			if slot_index >= len(available_switches):
+				return None
+			candidates = list(available_switches[slot_index])
+		elif available_switches:
+			candidates = list(available_switches)
+		else:
+			return None
+
+		candidates = [pokemon for pokemon in candidates if pokemon not in selected_switches]
+		if not candidates:
+			return None
+		return random.choice(candidates)
 
 
 	def _score_move(self, battle, attacker, move, target, opponents, attacker_moves):

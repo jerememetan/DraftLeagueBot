@@ -5,6 +5,7 @@ from unittest.mock import patch
 
 from bot_logic import DoublesMvpBot
 from poke_env.battle.side_condition import SideCondition
+from poke_env.player.battle_order import DoubleBattleOrder, PassBattleOrder
 from mocks import DummyBattle
 
 
@@ -228,6 +229,44 @@ class BotLogicRegressionTests(unittest.TestCase):
 
         self.assertEqual(order.first_order.order.id, "helpinghand")
         self.assertEqual(order.second_order.order.id, "tackle")
+
+    def test_choose_move_returns_double_order_for_single_forced_switch(self):
+        attacker = self.make_pokemon(name="attacker")
+        partner = self.make_pokemon(name="partner")
+        foe = self.make_pokemon(name="foe")
+        bench = self.make_pokemon(name="bench")
+        battle = DummyBattle(active_pokemon=[attacker, partner], opponent_active_pokemon=[foe])
+        battle.available_moves = [[], []]
+        battle.available_switches = [[bench], []]
+        battle.force_switch = [True, False]
+
+        self.bot.create_order = lambda pokemon, **_kwargs: SimpleNamespace(order=pokemon)
+
+        order = self.bot.choose_move(battle)
+
+        self.assertIsInstance(order, DoubleBattleOrder)
+        self.assertIs(order.first_order.order, bench)
+        self.assertIsInstance(order.second_order, PassBattleOrder)
+
+    def test_choose_move_does_not_switch_both_slots_to_same_pokemon(self):
+        attacker = self.make_pokemon(name="attacker")
+        partner = self.make_pokemon(name="partner")
+        foe = self.make_pokemon(name="foe")
+        toxapex = self.make_pokemon(name="Toxapex")
+        excadrill = self.make_pokemon(name="Excadrill")
+        battle = DummyBattle(active_pokemon=[attacker, partner], opponent_active_pokemon=[foe])
+        battle.available_moves = [[], []]
+        battle.available_switches = [[toxapex, excadrill], [toxapex, excadrill]]
+        battle.force_switch = [True, True]
+
+        self.bot.create_order = lambda pokemon, **_kwargs: SimpleNamespace(order=pokemon)
+
+        with patch.object(random, "choice", side_effect=lambda choices: choices[0]):
+            order = self.bot.choose_move(battle)
+
+        self.assertIsInstance(order, DoubleBattleOrder)
+        self.assertIs(order.first_order.order, toxapex)
+        self.assertIs(order.second_order.order, excadrill)
 
 
 if __name__ == "__main__":

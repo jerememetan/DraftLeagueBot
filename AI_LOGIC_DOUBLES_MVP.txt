@@ -147,6 +147,8 @@ Recent Additions (since last update)
 - Added Coaching and Baton Pass logic.
 - Added Boom move (Explosion/Self-Destruct/Misty Explosion) logic.
 - Added Memento, Final Gambit, and Destiny Bond logic.
+- Fixed Burning on fire types and paralysis on Electric types
+- Fixed switching move choosing move bug
 
 Remaining / Not Yet Implemented
 - Beat Up team-aware hit counting for self-hit combo scoring.

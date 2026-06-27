@@ -10,7 +10,7 @@ from bot_logic import DoublesMvpBot
 
 FORMAT_PROFILES = {
     "draft": "gen94v4doublesdraft",
-    "vgc-reg-ma": "gen9championsvgc2026regma",
+    "vgc-reg-mb": "gen9championsvgc2026regmb",
 }
 
 
