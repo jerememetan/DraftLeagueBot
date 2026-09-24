@@ -64,15 +64,12 @@ def apply_doubles_damage_bonuses(context, battle, attacker, move, target):
     if move_id is None:
         return 0
 
-    bonus = -2
+    bonus = 0
     if move_id in {"shadowsneak", "aquajet", "iceshard", "vacuumwave", "bulletpunch", "machpunch", "watershuriken"}:
-        bonus += 2
         bonus += weakness_policy_partner_bonus(context, battle, attacker, move, target)
     if move_id == "fling":
-        bonus += 2
         bonus += fling_speed_bonus(context, battle, attacker, move, target)
     if move_id in {"earthquake", "magnitude", "bulldoze"}:
-        bonus += 2
         bonus += earthquake_partner_bonus(context, battle)
     bonus += self_hit.self_hit_partner_boost_bonus(context, battle, attacker, move, target)
     return bonus
@@ -82,9 +79,9 @@ def weakness_policy_partner_bonus(context, battle, attacker, move, target):
     """Reward intentionally triggering a partner's Weakness Policy."""
     partner = context._get_partner(battle, attacker)
     if partner is None or target is None:
-        return -2
+        return 0
     if partner.item != "weaknesspolicy":
-        return -1
+        return 0
     if target is not partner:
         return 0
     if context._is_super_effective_on_target(move, partner):
@@ -96,11 +93,11 @@ def fling_speed_bonus(context, battle, attacker, move, target):
     """Score Fling into a partner for Salac Berry or Weakness Policy value."""
     partner = context._get_partner(battle, attacker)
     if partner is None or target is None:
-        return -2
+        return 0
     if target is not partner:
         return 0
     if attacker.item not in {"salacberry"}:
-        return -2
+        return 0
     if partner.item == "weaknesspolicy" and context._is_super_effective_on_target(move, partner):
         return 12
     return 9

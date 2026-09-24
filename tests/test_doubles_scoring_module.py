@@ -132,6 +132,24 @@ def test_apply_doubles_damage_bonuses_routes_stamina_partner_self_hit():
     assert result == expected
 
 
+def test_apply_doubles_damage_bonuses_does_not_penalize_unrelated_move():
+    from draftleaguebot.scoring import doubles
+
+    context = SimpleNamespace(
+        _get_partner=lambda _battle, _attacker: SimpleNamespace(ability=None),
+    )
+
+    result = doubles.apply_doubles_damage_bonuses(
+        context,
+        battle=SimpleNamespace(opponent_active_pokemon=[]),
+        attacker=SimpleNamespace(),
+        move=SimpleNamespace(id="tackle"),
+        target=SimpleNamespace(),
+    )
+
+    assert result == 0
+
+
 def test_same_turn_support_conflict_blocks_second_support_move():
     from draftleaguebot.scoring import doubles
 
