@@ -1,3 +1,4 @@
+from draftleaguebot.mechanics import terrain
 from draftleaguebot.scoring import doubles, setup, speed_control
 
 
@@ -6,6 +7,10 @@ def score_status_move(context, battle, attacker, move, target, opponents):
     move_id = getattr(move, "id", None)
     if move_id is None:
         return 0
+    if terrain.sleep_move_blocked_by_electric_terrain(battle, move, target):
+        return -20
+    if terrain.status_move_blocked_by_misty_terrain(battle, move, target):
+        return -20
 
     if move_id in {"tailwind"}:
         return speed_control.score_tailwind(context, battle)

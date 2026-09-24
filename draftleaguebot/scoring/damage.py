@@ -1,9 +1,12 @@
+from draftleaguebot.mechanics import terrain
 from draftleaguebot.scoring import doubles, speed_control
 
 
 def score_damaging_move(context, battle, attacker, move, target, opponents, attacker_moves):
     """Score one damaging move-target candidate."""
     if context._is_immune_to_move(battle, move, target):
+        return -20
+    if terrain.priority_move_blocked_by_psychic_terrain(battle, move, target):
         return -20
 
     score = 0.0
@@ -49,6 +52,12 @@ def score_damaging_move(context, battle, attacker, move, target, opponents, atta
         score += speed_control.score_speed_control_damage(
             context, battle, attacker, move, target, highest_damage
         )
+
+    if terrain.current_terrain(battle) is not None:
+        if getattr(move, "id", None) == "expandingforce" and terrain.current_terrain(battle).name == "PSYCHIC_TERRAIN":
+            score += 3
+        if terrain.rising_voltage_is_boosted(battle, move, target):
+            score += 3
 
     if context._is_offense_drop_damage_move(move):
         score += context._score_offense_drop_damage(battle, attacker, move, target, highest_damage)

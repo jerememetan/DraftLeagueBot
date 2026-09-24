@@ -131,14 +131,9 @@ def earthquake_partner_bonus(context, battle):
 
 def is_immune_to_ground(pokemon):
     """Return whether a Pokemon ignores Ground damage."""
-    try:
-        if getattr(pokemon, "ability", None) == "levitate":
-            return True
-        if getattr(pokemon, "item", None) == "airballoon":
-            return True
-        return pokemon.damage_multiplier(PokemonType.GROUND) == 0
-    except Exception:
-        return False
+    from draftleaguebot.mechanics import terrain
+
+    return terrain.is_immune_to_ground(pokemon)
 
 
 def has_any_type(pokemon, types):

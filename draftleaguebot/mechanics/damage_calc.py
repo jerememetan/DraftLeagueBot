@@ -5,6 +5,7 @@ from poke_env.data import GenData
 from poke_env.stats import compute_raw_stats
 
 from draftleaguebot.mechanics import effects, pokemon_state
+from draftleaguebot.mechanics import terrain
 
 
 def estimate_damage(battle, attacker, move, target, use_max_roll=False, debug=False):
@@ -13,6 +14,7 @@ def estimate_damage(battle, attacker, move, target, use_max_roll=False, debug=Fa
     if base <= 0:
         return 0.0
 
+    used_poke_env = False
     try:
         if battle is not None:
             attacker_side = resolve_identifier_side(battle, attacker)
@@ -29,6 +31,7 @@ def estimate_damage(battle, attacker, move, target, use_max_roll=False, debug=Fa
                     battle,
                 )
                 result = float(max_damage if use_max_roll else (min_damage + max_damage) / 2)
+                used_poke_env = True
                 if debug and result > 500:
                     print(
                         "      [CALC_DEBUG] "
@@ -50,6 +53,8 @@ def estimate_damage(battle, attacker, move, target, use_max_roll=False, debug=Fa
             multiplier = battle.damage_multiplier(move, target)
         except Exception:
             multiplier = 1.0
+    if not used_poke_env:
+        multiplier *= terrain.terrain_damage_multiplier(battle, attacker, move, target)
     roll = 1.0 if use_max_roll else damage_roll_factor()
 
     base_damage = (((2 * level / 5 + 2) * base * attack_stat / max(1, defense_stat)) / 50) + 2
