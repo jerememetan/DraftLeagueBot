@@ -104,6 +104,16 @@ def test_defensive_tera_prevents_known_faster_ko():
     assert tera.defensive_tera_saves_ko(bot, battle, attacker, "grass", [opponent])
 
 
+def test_tera_copy_supports_read_only_poke_env_types():
+    class PokemonLike:
+        @property
+        def types(self):
+            return ["water"]
+
+    hypothetical = tera.with_tera_type(PokemonLike(), "grass")
+    assert hypothetical._temporary_types == [PokemonType.GRASS]
+
+
 def test_mega_z_and_tera_can_be_chosen_independently():
     order = select_orders(mega=(True, False), z=(True, True), z_eligible=(True, True))
     assert order.first_order.mega

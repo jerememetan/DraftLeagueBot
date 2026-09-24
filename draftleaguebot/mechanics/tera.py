@@ -16,7 +16,11 @@ def with_tera_type(pokemon, tera_type, preserve_original=False):
     hypothetical = copy(pokemon)
     tera = pokemon_type(tera_type)
     original_types = list(getattr(pokemon, "types", ()) or ())
-    hypothetical.types = original_types + [tera] if preserve_original else [tera]
+    types = original_types + [tera] if preserve_original else [tera]
+    try:
+        hypothetical.types = types
+    except AttributeError:
+        hypothetical._temporary_types = types
     return hypothetical
 
 

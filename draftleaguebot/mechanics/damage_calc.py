@@ -16,7 +16,7 @@ def estimate_damage(battle, attacker, move, target, use_max_roll=False, debug=Fa
 
     used_poke_env = False
     try:
-        if battle is not None:
+        if battle is not None and not getattr(attacker, "_temporary_types", ()) and not getattr(target, "_temporary_types", ()):
             attacker_side = resolve_identifier_side(battle, attacker)
             defender_side = resolve_identifier_side(battle, target)
             if attacker_side is not None and defender_side is not None:
