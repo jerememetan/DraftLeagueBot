@@ -50,6 +50,15 @@ def same_turn_support_conflict(context, move, selected_moves):
     return any(getattr(selected, "id", None) == "helpinghand" for selected in selected_moves)
 
 
+def duplicate_trick_room_penalty(move, selected_moves):
+    """Return the penalty for selecting Trick Room after a partner did."""
+    if getattr(move, "id", None) != "trickroom":
+        return 0
+    if any(getattr(selected, "id", None) == "trickroom" for selected in selected_moves):
+        return -5
+    return 0
+
+
 def partner_has_hex(context, battle, attacker):
     """Return whether the active partner has Hex available."""
     partner = context._get_partner(battle, attacker)

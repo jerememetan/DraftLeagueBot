@@ -129,6 +129,9 @@ class DoublesMvpBot(DamageRulesMixin, StateOrderMixin, StatusCoreMixin, FieldSup
 				targets = self._candidate_targets(battle, attacker, move, opponents)
 				for target in targets:
 					score = self._score_move(battle, attacker, move, target, opponents, moves)
+					from draftleaguebot.scoring import doubles
+
+					score += doubles.duplicate_trick_room_penalty(move, selected_moves)
 					if self._same_turn_support_conflict(move, selected_moves):
 						score = -20
 					scored.append((score, move, target))

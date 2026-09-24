@@ -196,3 +196,16 @@ def test_same_turn_support_conflict_blocks_helping_hand_after_status_move():
     result = doubles.same_turn_support_conflict(context, SimpleNamespace(id="helpinghand"), selected_moves)
 
     assert result == expected
+
+
+def test_duplicate_trick_room_selection_is_penalized():
+    from draftleaguebot.scoring import doubles
+
+    selected_moves = [SimpleNamespace(id="trickroom")]
+
+    assert doubles.duplicate_trick_room_penalty(
+        SimpleNamespace(id="trickroom"), selected_moves
+    ) == -5
+    assert doubles.duplicate_trick_room_penalty(
+        SimpleNamespace(id="protect"), selected_moves
+    ) == 0
