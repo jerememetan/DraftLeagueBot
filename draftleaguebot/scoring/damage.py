@@ -11,6 +11,10 @@ def score_damaging_move(context, battle, attacker, move, target, opponents, atta
 
     score = 0.0
     damage = context._estimate_damage(battle, attacker, move, target)
+    get_partner = getattr(context, "_get_partner", None)
+    partner = get_partner(battle, attacker) if get_partner is not None else None
+    if target is partner and context._estimated_kill(target, damage):
+        return -20
 
     if context._should_debug(battle):
         target_name = getattr(target, "name", "?")

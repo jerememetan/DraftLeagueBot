@@ -85,3 +85,28 @@ def test_score_damaging_move_adds_fast_ko_bonus_and_snowball_bonus():
     )
 
     assert result == expected
+
+
+def test_score_damaging_move_rejects_ko_on_active_partner():
+    from draftleaguebot.scoring import damage
+
+    attacker = SimpleNamespace()
+    partner = SimpleNamespace()
+    move = SimpleNamespace(priority=0)
+    context = make_damage_context(
+        _estimate_damage=lambda _battle, _attacker, _move, _target: 100,
+        _estimated_kill=lambda _target, _damage: True,
+        _get_partner=lambda _battle, _attacker: partner,
+    )
+
+    result = damage.score_damaging_move(
+        context,
+        battle=SimpleNamespace(),
+        attacker=attacker,
+        move=move,
+        target=partner,
+        opponents=[],
+        attacker_moves=[move],
+    )
+
+    assert result == -20
