@@ -13,6 +13,7 @@ from draftleaguebot.bot_parts.setup_wrappers import SetupWrappersMixin
 from draftleaguebot.bot_parts.state_orders import StateOrderMixin
 from draftleaguebot.bot_parts.status_core import StatusCoreMixin
 from draftleaguebot.bot_parts.status_helpers import StatusHelpersMixin
+from draftleaguebot.mechanics import tera
 
 
 class DoublesMvpBot(DamageRulesMixin, StateOrderMixin, StatusCoreMixin, FieldSupportMixin, SetupWrappersMixin, StatusHelpersMixin, MoveHelpersMixin, MechanicsWrappersMixin, MaxBasePowerPlayer):
@@ -68,6 +69,11 @@ class DoublesMvpBot(DamageRulesMixin, StateOrderMixin, StatusCoreMixin, FieldSup
 		if self._slot_can_use(battle, "can_mega_evolve", "used_mega_evolve", slot_index) and "mega" not in chosen:
 			return "mega"
 
+		if self._slot_can_use(battle, "can_tera", "used_tera", slot_index) and "terastallize" not in chosen:
+			tera_type = self._tera_type(battle, slot_index, attacker)
+			if tera.defensive_tera_saves_ko(self, battle, attacker, tera_type, opponents):
+				return "terastallize"
+
 		# Z-Moves are move-specific. can_z_move alone does not mean every move is legal.
 		if target is not None and any(target is opponent for opponent in opponents) and self._is_damaging(move):
 			if not self._is_immune_to_move(battle, move, target):
@@ -82,7 +88,9 @@ class DoublesMvpBot(DamageRulesMixin, StateOrderMixin, StatusCoreMixin, FieldSup
 					move_type = getattr(move, "type", None)
 					tera_name = to_id_str(getattr(tera_type, "name", tera_type)) if tera_type is not None else None
 					move_name = to_id_str(getattr(move_type, "name", move_type)) if move_type is not None else None
-					if tera_name is not None and move_name is not None and (tera_name == move_name or tera_name == "stellar"):
+					if tera_name is not None and move_name is not None and tera.offensive_tera_is_valuable(
+						self, battle, attacker, tera_type, move, target
+					):
 						return "terastallize"
 		return None
 

@@ -32,6 +32,28 @@ Damage Scoring (All Damaging Moves)
 Priority Damaging Moves
 - If AI is slower and is KO'd by the target this turn: +11 to priority moves.
 
+Terastallization (Balanced Offensive and Defensive Policy)
+- Tera is evaluated per active slot and only one Pokemon may Terastallize per turn.
+- Tera is not used if it was already consumed in the battle or is unavailable for
+  the active slot.
+- Emergency defensive Tera is checked before offensive Tera:
+  - Use only against a known, faster opponent with a revealed damaging move.
+  - If that move's maximum-roll damage would KO the AI Pokemon before Tera,
+    calculate the same move against a temporary copy with the requested Tera type.
+  - Terastallize if the temporary Tera type allows the Pokemon to survive.
+  - Unknown or unrevealed opponent moves are not guessed.
+- Offensive Tera requires the selected move to target an opponent, be damaging,
+  and not target an immune Pokemon.
+- The selected move's type must match the Tera type. Stellar Tera is an exception
+  for any eligible damaging attack.
+- Offensive Tera value includes Tera STAB:
+  - A move matching an original type and the Tera type uses the 2.0x Tera STAB
+    multiplier.
+  - A move matching only the Tera type uses the 1.5x Tera STAB multiplier.
+  - Tera is selected when the estimated damage improves by more than 10%.
+- Action priority is Mega Evolution, emergency defensive Tera, Z-Move, then
+  valuable offensive Tera. Existing once-per-turn restrictions still apply.
+
 Doubles-Specific Move Bonuses
 - Icy Wind / Electroweb: +1 additional in doubles.
 - Guaranteed Atk/SpA drops with spread (e.g., Trop Kick, Skitter Smack): +1
@@ -128,6 +150,8 @@ Implemented
 - Tailwind/Trick Room refinements (speed profiling and active TR check).
 - Fake Out first-turn scoring and priority bias.
 - Avoid damaging moves into immune targets (general immunity check).
+- Balanced offensive and defensive Terastallization with known-threat checks and
+  Tera STAB-aware damage evaluation.
 - Coaching and Baton Pass scoring.
 - Explosion/Self-Destruct/Misty Explosion scoring.
 - Debug logging for decisions and final orders (toggle with --debug).

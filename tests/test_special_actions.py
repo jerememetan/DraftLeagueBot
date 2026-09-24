@@ -1,6 +1,7 @@
 from types import SimpleNamespace
 
 from draftleaguebot.bot import DoublesMvpBot
+from draftleaguebot.mechanics import tera
 from poke_env.battle.move import Move
 from poke_env.battle.pokemon_type import PokemonType
 from poke_env.player.battle_order import DoubleBattleOrder
@@ -77,6 +78,30 @@ def test_tera_only_when_move_matches_tera_type():
     order = select_orders(tera=(True, True), tera_matches=(False, True))
     assert not order.first_order.terastallize
     assert order.second_order.terastallize
+
+
+def test_defensive_tera_prevents_known_faster_ko():
+    bot = DoublesMvpBot.__new__(DoublesMvpBot)
+    attacker = SimpleNamespace(types=["water"], tera_type="grass", current_hp=100, max_hp=100)
+    opponent = SimpleNamespace(
+        moves={"earthquake": SimpleNamespace(id="earthquake", base_power=100, category=SimpleNamespace(name="PHYSICAL"))},
+    )
+    move = SimpleNamespace(id="protect", base_power=0, category=SimpleNamespace(name="STATUS"))
+    target = SimpleNamespace()
+    battle = SimpleNamespace(
+        can_mega_evolve=[False, False], used_mega_evolve=False,
+        can_z_move=[False, False], used_z_move=False,
+        can_tera=[True, False], used_tera=False,
+    )
+    bot._is_faster = lambda faster, slower: faster is opponent
+    bot._is_damaging = lambda move: move.base_power > 0
+    bot._get_target_current_hp = lambda pokemon: pokemon.current_hp
+    bot._estimate_damage = lambda _battle, _attacker, _move, defender, use_max_roll=False: (
+        120 if defender.types == ["water"] else 50
+    )
+    bot._is_immune_to_move = lambda *_: False
+    assert bot._special_action(battle, 0, attacker, move, target, [opponent], set()) == "terastallize"
+    assert tera.defensive_tera_saves_ko(bot, battle, attacker, "grass", [opponent])
 
 
 def test_mega_z_and_tera_can_be_chosen_independently():
