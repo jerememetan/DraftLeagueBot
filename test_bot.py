@@ -1,9 +1,14 @@
 import argparse
 import asyncio
+import os
 import random
 from pathlib import Path
 
-from poke_env import AccountConfiguration, LocalhostServerConfiguration
+from poke_env import (
+    AccountConfiguration,
+    LocalhostServerConfiguration,
+    ShowdownServerConfiguration,
+)
 
 from bot_logic import DoublesMvpBot
 
@@ -11,7 +16,28 @@ from bot_logic import DoublesMvpBot
 FORMAT_PROFILES = {
     "draft": "gen94v4doublesdraft",
     "vgc-reg-mb": "gen9championsvgc2026regmb",
+    "national-dex-doubles": "gen9nationaldexdoubles",
 }
+
+
+def load_local_env():
+    """Load simple KEY=VALUE entries from the untracked repository .env file."""
+    env_path = Path(__file__).parent / ".env"
+    if not env_path.is_file():
+        return
+    with env_path.open(encoding="utf-8") as env_file:
+        for line_number, raw_line in enumerate(env_file, start=1):
+            line = raw_line.strip()
+            if not line or line.startswith("#"):
+                continue
+            if "=" not in line:
+                raise ValueError(f"Invalid .env entry on line {line_number}: expected KEY=VALUE")
+            key, value = (part.strip() for part in line.split("=", 1))
+            if key not in {"PS_BOT_USERNAME", "PS_BOT_PASSWORD"}:
+                continue
+            if len(value) >= 2 and value[0] == value[-1] and value[0] in {"'", '"'}:
+                value = value[1:-1]
+            os.environ.setdefault(key, value)
 
 
 def prompt_for_battle_format():
@@ -104,14 +130,26 @@ class SmartAggroBot(DoublesMvpBot):
 
 
 async def main():
+    load_local_env()
     parser = argparse.ArgumentParser()
     parser.add_argument("--preflight", action="store_true", help="Run import/team checks only")
     parser.add_argument("--debug", action="store_true", help="Enable per-turn debug output")
     parser.add_argument("--team-file", help="Use a specific team file (name or full path)")
     parser.add_argument(
+        "--server", choices=("local", "showdown"), default="local",
+        help="Connect to the local server or public Pokemon Showdown",
+    )
+    parser.add_argument(
+        "--account-name", help="Showdown account name (or set PS_BOT_USERNAME)"
+    )
+    parser.add_argument(
+        "--max-challenges", type=int, default=5,
+        help="Number of battles to accept before exiting; 0 runs until interrupted (default: 5)",
+    )
+    parser.add_argument(
         "--format-profile",
         choices=sorted(FORMAT_PROFILES),
-        default="draft",
+        default=None,
         help="Named doubles format preset to use",
     )
     parser.add_argument(
@@ -136,9 +174,11 @@ async def main():
             print(f" - {profile_name}: {format_id}")
         return
 
-    bot_account = AccountConfiguration("Bot_Opponent", None)
+    if args.max_challenges < 0:
+        parser.error("--max-challenges must be 0 or greater")
+
     resolved_battle_format = resolve_battle_format(args.format_profile, args.battle_format)
-    if not args.battle_format and not args.no_format_prompt:
+    if not args.battle_format and not args.format_profile and not args.no_format_prompt:
         resolved_battle_format = prompt_for_battle_format()
     
     available = list_available_challengers()
@@ -160,12 +200,22 @@ async def main():
             return
         
         if selected_trainer in available:
-            team_file = args.team_file if args.debug else None
-            selected_team = load_random_team_from_challenger(selected_trainer, team_file=team_file)
+            selected_team = load_random_team_from_challenger(selected_trainer, team_file=args.team_file)
             if selected_team:
                 break
         else:
             print(f"[ERROR] '{selected_trainer}' not found. Please try again.")
+
+    if args.server == "showdown":
+        account_name = args.account_name or os.environ.get("PS_BOT_USERNAME")
+        password = os.environ.get("PS_BOT_PASSWORD")
+        if not account_name or not password:
+            parser.error("public Showdown requires --account-name or PS_BOT_USERNAME and PS_BOT_PASSWORD")
+        bot_account = AccountConfiguration(account_name, password)
+        server_configuration = ShowdownServerConfiguration
+    else:
+        bot_account = AccountConfiguration(args.account_name or "Bot_Opponent", None)
+        server_configuration = LocalhostServerConfiguration
 
     if args.preflight:
         print(f"[OK] Preflight OK: team loaded and bot can be instantiated with '{resolved_battle_format}'.")
@@ -174,7 +224,7 @@ async def main():
     # Create bot
     bot = SmartAggroBot(
         account_configuration=bot_account,
-        server_configuration=LocalhostServerConfiguration,
+        server_configuration=server_configuration,
         team=selected_team,
         battle_format=resolved_battle_format,
         debug=args.debug,
@@ -184,7 +234,11 @@ async def main():
         print(f"[OK] Bot Ready. Debugging enabled. Battle format: {resolved_battle_format}")
     else:
         print(f"[OK] Bot Ready. Battle format: {resolved_battle_format}")
-    await bot.accept_challenges(None, 5)
+    if args.max_challenges == 0:
+        while True:
+            await bot.accept_challenges(None, 1)
+    else:
+        await bot.accept_challenges(None, args.max_challenges)
 
 
 if __name__ == "__main__":

@@ -3,3 +3,4 @@
 !TESTER/
 __pycache__/
 *.py[cod]
+.env

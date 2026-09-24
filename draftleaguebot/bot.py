@@ -3,6 +3,7 @@ from typing import Any, List, Optional, Tuple
 
 from poke_env.player import MaxBasePowerPlayer
 from poke_env.player.battle_order import DoubleBattleOrder, PassBattleOrder
+from poke_env.data import to_id_str
 
 from draftleaguebot.bot_parts.damage_rules import DamageRulesMixin
 from draftleaguebot.bot_parts.field_support import FieldSupportMixin
@@ -23,12 +24,67 @@ class DoublesMvpBot(DamageRulesMixin, StateOrderMixin, StatusCoreMixin, FieldSup
 		self._debug_turns = debug_turns
 
 
-	def _should_z_move(self, pokemon, battle):
-		return False
+	@staticmethod
+	def _slot_can_use(battle, field, used_field, slot_index):
+		"""Read Showdown's per-active-slot permission, respecting previous use."""
+		if getattr(battle, used_field, False):
+			return False
+		available = getattr(battle, field, ())
+		return isinstance(available, (list, tuple)) and slot_index < len(available) and bool(available[slot_index])
+
+	@staticmethod
+	def _active_request(battle, slot_index):
+		request = getattr(battle, "last_request", None) or {}
+		active = request.get("active", ())
+		return active[slot_index] if slot_index < len(active) else {}
 
 
-	def _should_terastallize(self, pokemon, battle):
-		return False
+	def _z_move_available(self, battle, slot_index, attacker, move):
+		active_request = self._active_request(battle, slot_index)
+		if "canZMove" in active_request:
+			# Showdown sends one Z option (or null) for each original move slot.
+			options = active_request["canZMove"] or ()
+			for move_request, option in zip(active_request.get("moves", ()), options):
+				if to_id_str(move_request.get("id", "")) == to_id_str(move.id) and option:
+					return True
+			return False
+		# Fallback for synthetic states without the raw Showdown request.
+		return any(z_move.id == move.id for z_move in (getattr(attacker, "available_z_moves", ()) or ()))
+
+
+	def _tera_type(self, battle, slot_index, attacker):
+		active_request = self._active_request(battle, slot_index)
+		type_name = active_request.get("canTerastallize")
+		if not type_name:
+			request = getattr(battle, "last_request", None) or {}
+			pokemon = request.get("side", {}).get("pokemon", ())
+			if slot_index < len(pokemon):
+				type_name = pokemon[slot_index].get("teraType")
+		return type_name or getattr(attacker, "tera_type", None)
+
+
+	def _special_action(self, battle, slot_index, attacker, move, target, opponents, chosen):
+		"""Select at most one special action per type across both active slots."""
+		if self._slot_can_use(battle, "can_mega_evolve", "used_mega_evolve", slot_index) and "mega" not in chosen:
+			return "mega"
+
+		# Z-Moves are move-specific. can_z_move alone does not mean every move is legal.
+		if target is not None and any(target is opponent for opponent in opponents) and self._is_damaging(move):
+			if not self._is_immune_to_move(battle, move, target):
+				if self._slot_can_use(battle, "can_z_move", "used_z_move", slot_index) and "z_move" not in chosen:
+					if self._z_move_available(battle, slot_index, attacker, move):
+						if getattr(move, "z_move_power", 0) > getattr(move, "base_power", 0):
+							return "z_move"
+
+				if self._slot_can_use(battle, "can_tera", "used_tera", slot_index) and "terastallize" not in chosen:
+					# Use offensive Tera only when this move gains a Tera STAB boost.
+					tera_type = self._tera_type(battle, slot_index, attacker)
+					move_type = getattr(move, "type", None)
+					tera_name = to_id_str(getattr(tera_type, "name", tera_type)) if tera_type is not None else None
+					move_name = to_id_str(getattr(move_type, "name", move_type)) if move_type is not None else None
+					if tera_name is not None and move_name is not None and (tera_name == move_name or tera_name == "stellar"):
+						return "terastallize"
+		return None
 
 
 	def choose_move(self, battle):
@@ -50,6 +106,7 @@ class DoublesMvpBot(DamageRulesMixin, StateOrderMixin, StatusCoreMixin, FieldSup
 
 		orders = []
 		selected_moves = []
+		chosen_actions = set()
 		for slot_index, attacker, moves in self._get_active_slots(battle):
 			if not moves:
 				order = self._fallback_order_for_slot(battle, slot_index)
@@ -81,28 +138,13 @@ class DoublesMvpBot(DamageRulesMixin, StateOrderMixin, StatusCoreMixin, FieldSup
 			if self._should_debug(battle):
 				self._log_decision(battle, slot_index, attacker, scored, best_move, best_target)
 
-			try:
-				move_target = self._move_target_position(battle, attacker, best_move, best_target)
-				# Prefer explicit battle-provided availability: can_mega_evolve per active slot
-				can_mega_from_battle = False
-				try:
-					can_mega_from_battle = bool(battle.can_mega_evolve[slot_index])
-				except Exception:
-					can_mega_from_battle = False
-				# Also respect whether we've already used Mega this battle
-				if getattr(battle, "used_mega_evolve", False):
-					can_mega_from_battle = False
-				# Use battle-provided availability; strategic gating removed
-				orders.append(self.create_order(best_move, move_target=move_target, mega=can_mega_from_battle))
-			except Exception:
-				can_mega_from_battle = False
-				try:
-					can_mega_from_battle = bool(battle.can_mega_evolve[slot_index])
-				except Exception:
-					can_mega_from_battle = False
-				if getattr(battle, "used_mega_evolve", False):
-					can_mega_from_battle = False
-				orders.append(self.create_order(best_move, mega=can_mega_from_battle))
+			move_target = self._move_target_position(battle, attacker, best_move, best_target)
+			action = self._special_action(
+				battle, slot_index, attacker, best_move, best_target, opponents, chosen_actions
+			)
+			if action:
+				chosen_actions.add(action)
+			orders.append(self.create_order(best_move, move_target=move_target, **({action: True} if action else {})))
 
 		if not orders:
 			return self.choose_random_move(battle)
